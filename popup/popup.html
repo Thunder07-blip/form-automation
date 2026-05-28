@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    
+    <div class="header">
+      <div class="logo"><span>✨</span> FormAI</div>
+      <button id="toggle-settings-btn" class="icon-btn" title="Settings">⚙️</button>
+    </div>
+    
+    <div id="settings-area" class="glass-panel" style="display: none;">
+      <div class="input-group">
+        <label>LLM Providers (Drag to set Priority 🎉)</label>
+        <div id="provider-list" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Dynamically filled by JS -->
+        </div>
+        <button id="add-provider-btn" class="secondary-btn" style="border-style: dashed; padding: 6px; font-size: 12px; margin-top: 4px;">+ Add Provider Key</button>
+      </div>
+      
+      <div class="input-group">
+        <label for="profile-input">Personal Profile (Bio for Context)</label>
+        <textarea id="profile-input" class="input-block" placeholder="Email: user@example.com, Roll No: 12..." rows="3" style="resize:none;"></textarea>
+      </div>
+
+      <button id="save-key-btn" class="secondary-btn">Save Configurations</button>
+    </div>
+
+    <div id="main-area">
+      
+      <!-- Stats Panel appearing after extraction -->
+      <div id="stats-panel" class="glass-panel">
+        <div class="stat-row">
+          <span>Detected Fields</span>
+          <span id="stat-fields-val" class="stat-val">0</span>
+        </div>
+      </div>
+
+      <div id="ai-response-area" class="glass-panel">
+        <div class="status-container">
+          <span id="status-dot" class="dot idle"></span>
+          <span id="status-text" style="font-weight: 500;">Ready</span>
+          <span id="provider-badge" style="display: none; margin-left: auto; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(124, 92, 255, 0.2); border: 1px solid var(--primary); color: var(--primary);">OpenAI</span>
+        </div>
+        <div id="error-message" style="color: var(--error); font-size: 12px; margin-top: 8px; display: none;"></div>
+      </div>
+
+      <!-- Telemetry Actions Panel -->
+      <div id="telemetry-panel" class="glass-panel" style="margin-top: 8px; padding: 10px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+        <span style="color: var(--text-muted); font-weight: 500;">Telemetry Logs</span>
+        <div style="display: flex; gap: 6px;">
+          <button id="download-logs-btn" class="secondary-btn" style="padding: 5px 10px; font-size: 11px; margin: 0; line-height: 1;">📥 Download</button>
+          <button id="clear-logs-btn" class="secondary-btn" style="padding: 5px 10px; font-size: 11px; margin: 0; line-height: 1; color: var(--error); border-color: rgba(239, 68, 68, 0.3);">🗑️ Clear</button>
+        </div>
+      </div>
+
+      <!-- Command / Ask Input Region -->
+      <div class="action-bar">
+        <div class="chat-box">
+          <textarea id="chat-input" placeholder="Ask anything... or paste questions"></textarea>
+        </div>
+        <button id="solve-btn" class="primary-btn">Solve Form ✨</button>
+      </div>
+
+    </div>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

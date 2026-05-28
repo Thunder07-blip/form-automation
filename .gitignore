@@ -1,0 +1,16 @@
+# Dependency directory
+node_modules/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Chrome extension debug files
+before_running.html
+after_running.html
+before_opening_html.html
+after_opening_dropdown.html
+after_i_manually_closed_by_selecting.html
+
+# CSV logs & telemetry outputs
+*.csv
