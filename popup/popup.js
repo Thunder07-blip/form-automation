@@ -530,11 +530,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                         console.error("Backend login failed:", data.error);
                         googleLoginBtn.innerHTML = 'Error. Try Again.';
                         googleLoginBtn.disabled = false;
+                        if (errorText) {
+                            errorText.textContent = "Backend Error: " + data.error;
+                            errorText.style.display = 'block';
+                        }
                     }
                 } catch (err) {
                     console.error("Fetch error during auth:", err);
                     googleLoginBtn.innerHTML = 'Error. Try Again.';
                     googleLoginBtn.disabled = false;
+                    if (errorText) {
+                        errorText.textContent = "Network/Server Error: " + err.message;
+                        errorText.style.display = 'block';
+                    }
                 }
             });
         });
