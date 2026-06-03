@@ -81,21 +81,68 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-const BATCH_SIZE = 4; // Small batches to stay within Groq's 6000 TPM
-const BATCH_COOLDOWN = 12000; // 12 seconds between batches
+// ─── Experiment-Derived Constants (run npm run experiment to re-calibrate) ───
+// Groq free-tier: 6000 TPM. Each block costs ~147 tokens (107 prompt + 40 completion).
+// System prompt overhead: ~297 tokens. Safe capacity: 6000 * 0.88 = 5280 tokens.
+// Max blocks in one request: (5280 - 297) / 147 ≈ 34. We use 20 as conservative safe value.
+// Burst test: 4 back-to-back requests (705 tok each) = 2820 tok hit the sliding window limit.
+// Solution: use large batches (fewer requests) rather than many small ones.
+// Real latency: 690ms–2111ms. Minimum working cooldown: 5000ms (3000ms failed in experiment).
+// 5s cooldown between 20-block batches = ~114 blocks/min vs old 4 blocks / 12s = 18 blocks/min.
+const BATCH_SIZE     = 20;   // Was 4. Experiment shows 20 blocks = ~2750 tokens, safely under 6000 TPM.
+const BATCH_COOLDOWN = 10000; // Was 12000. 10s is safe buffer above the 5s minimum from experiment.
+const GROQ_TPM_SAFE  = 5000; // 83% of 6000. Skip Groq for full payload only above this threshold.
 const MAX_SINGLE_RETRIES = 1; // Only retry empty answers once
-let rateLimitedProviders = {}; // Track which providers are rate-limited and when they're free
-let brokenProviders = {}; // Track providers that threw permanent EXPIRED_KEY or INVALID_KEY errors during the current run
+
+// ─── Groq Multi-Model Pool ────────────────────────────────────────────────────
+// Each model has its OWN independent 6000 TPM bucket on Groq.
+// By rotating across models when one rate-limits, we multiply effective throughput.
+// Priority order: fast → smart → reasoning → fallback
+const GROQ_MODEL_POOL = [
+  { id: "llama-3.1-8b-instant",     label: "Llama3.1-8B" },   // Fastest, ~700ms
+  { id: "llama-3.3-70b-versatile",  label: "Llama3.3-70B" },  // Smarter, good for complex
+  { id: "qwen-qwq-32b",             label: "Qwen-32B" },      // Strong reasoner
+  { id: "gemma2-9b-it",             label: "Gemma2-9B" },     // Lightweight Google model
+];
+
+// Expand a user's provider list — each Groq entry becomes N entries (one per model).
+// This makes the existing round-robin logic automatically rotate across model TPM buckets.
+function expandProviders(providerKeys) {
+  const expanded = [];
+  for (const prov of providerKeys) {
+    if (prov.vendor === "groq") {
+      for (const m of GROQ_MODEL_POOL) {
+        expanded.push({ ...prov, model: m.id, modelLabel: m.label });
+      }
+    } else if (prov.vendor === "openrouter") {
+      expanded.push({ ...prov, model: "meta-llama/llama-3.3-70b-instruct:free", modelLabel: "Llama3.3-70B-Free" });
+    } else if (prov.vendor === "nvidia") {
+      expanded.push({ ...prov, model: "nvidia/nemotron-3-nano-30b-a3b", modelLabel: "Nemotron-3-Nano" });
+    } else {
+      expanded.push(prov);
+    }
+  }
+  return expanded;
+}
+
+// Composite rate-limit key: apiKey:model — each model gets its own bucket.
+function provId(prov) {
+  return prov.model ? `${prov.key}:${prov.model}` : prov.key;
+}
+
+let rateLimitedProviders = {}; // keyed by provId()
+let brokenProviders = {};      // keyed by prov.key (key-level: bad key = all models broken)
 
 let isSolving = false;
 
-function markProviderBroken(apiKey, vendor) {
-  brokenProviders[apiKey] = true;
-  debugWarn("Engine", `Key for ${vendor.toUpperCase()} marked as broken/expired — skipping in future requests`);
+function markProviderBroken(prov) {
+  // Broken key = all models for that key are dead
+  brokenProviders[prov.key] = true;
+  debugWarn("Engine", `Key for ${prov.vendor.toUpperCase()} (${prov.modelLabel || prov.model || 'default'}) marked broken/expired — skipping all models for this key`);
 }
 
-function isProviderBroken(apiKey) {
-  return !!brokenProviders[apiKey];
+function isProviderBroken(prov) {
+  return !!brokenProviders[prov.key];
 }
 
 // ─── Status Updates and State Broadcasting ───────────────────────────────────
@@ -140,19 +187,19 @@ async function sleepWithCountdown(ms, statusTextPrefix) {
 function categorizeError(status, errorMsg) {
   const msg = (errorMsg || "").toLowerCase();
   
-  // 1. Rate Limit / Quota check first
+  // 1. Expired Key / Billing credit exhaustion (Check this BEFORE rate limits, as some 429s are permanent billing errors)
+  if (status === 403 || status === 402 || status === 404 || msg.includes("expired") || msg.includes("revoked") || msg.includes("billing") || msg.includes("deactivated") || msg.includes("insufficient_quota") || msg.includes("check your plan and billing") || msg.includes("limit: 0") || msg.includes("credits")) {
+    return "EXPIRED_KEY";
+  }
+  
+  // 2. Rate Limit / Quota limits
   if (status === 429 || msg.includes("rate limit") || msg.includes("tpm") || msg.includes("rpm") || msg.includes("requests") || msg.includes("too many requests") || msg.includes("limit exceeded") || msg.includes("try again in")) {
     return "RATE_LIMIT";
   }
   
-  // 2. Invalid Key
+  // 3. Invalid Key
   if (status === 401 || (msg.includes("api key") && (msg.includes("invalid") || msg.includes("incorrect") || msg.includes("not found") || msg.includes("invalid_api_key")))) {
     return "INVALID_KEY";
-  }
-  
-  // 3. Expired Key / Billing credit exhaustion
-  if (status === 403 || msg.includes("expired") || msg.includes("revoked") || msg.includes("billing") || msg.includes("deactivated") || msg.includes("insufficient_quota") || msg.includes("check your plan and billing")) {
-    return "EXPIRED_KEY";
   }
   
   return "OTHER_ERROR";
@@ -222,23 +269,24 @@ function extractWaitTime(errorMsg) {
   return 0;
 }
 
-// ─── Check if a provider key is currently rate-limited ───────────────────────
-function isProviderRateLimited(apiKey, vendor) {
-  const cooldownEnd = rateLimitedProviders[apiKey];
+// ─── Check if a provider+model is currently rate-limited ──────────────────────
+function isProviderRateLimited(prov) {
+  const id = provId(prov);
+  const cooldownEnd = rateLimitedProviders[id];
   if (!cooldownEnd) return false;
   if (Date.now() > cooldownEnd) {
-    delete rateLimitedProviders[apiKey];
+    delete rateLimitedProviders[id];
     return false;
   }
   const remaining = Math.ceil((cooldownEnd - Date.now()) / 1000);
-  debugWarn("Throttle", `${vendor.toUpperCase()} key (...${apiKey.slice(-4)}) rate-limited for ${remaining}s — skipping`);
+  debugWarn("Throttle", `${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model || 'default'} rate-limited for ${remaining}s — rotating to next model`);
   return true;
 }
 
-// ─── Mark a provider key as rate-limited ─────────────────────────────────────
-function markRateLimited(apiKey, vendor, waitMs) {
-  rateLimitedProviders[apiKey] = Date.now() + waitMs;
-  debugWarn("Throttle", `${vendor.toUpperCase()} key (...${apiKey.slice(-4)}) rate-limited for ${(waitMs / 1000).toFixed(1)}s`);
+// ─── Mark a provider+model as rate-limited ─────────────────────────────────────
+function markRateLimited(prov, waitMs) {
+  rateLimitedProviders[provId(prov)] = Date.now() + waitMs;
+  debugWarn("Throttle", `${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model || 'default'} rate-limited for ${(waitMs / 1000).toFixed(1)}s — will try next model in pool`);
 }
 
 function isRateLimitError(msg) {
@@ -427,15 +475,15 @@ async function retryEmptyPolymorphicAnswers(answers, blocks, providerKeys, syste
   return answers;
 }
 
-async function solveSingleBlock(block, providerKeys, systemPrompt) {
+async function solveSingleBlock(block, allProviders, systemPrompt) {
   const singlePrompt = JSON.stringify([block], null, 2);
 
-  for (const prov of providerKeys) {
-    if (isProviderBroken(prov.key)) continue;
-    if (isProviderRateLimited(prov.key, prov.vendor)) continue;
+  for (const prov of allProviders) {
+    if (isProviderBroken(prov)) continue;
+    if (isProviderRateLimited(prov)) continue;
 
     try {
-      const raw = await executeProvider(prov.vendor, prov.key, systemPrompt, singlePrompt);
+      const raw = await executeProvider(prov, systemPrompt, singlePrompt);
       const parsed = extractJSON(raw);
       
       const arr = Array.isArray(parsed) ? parsed : (parsed.answers || [parsed]);
@@ -444,9 +492,9 @@ async function solveSingleBlock(block, providerKeys, systemPrompt) {
     } catch (e) {
       const parsedErr = parseError(e);
       if (parsedErr.category === "INVALID_KEY" || parsedErr.category === "EXPIRED_KEY") {
-        markProviderBroken(prov.key, prov.vendor);
+        markProviderBroken(prov);
       } else if (isRateLimitError(e.message)) {
-        markRateLimited(prov.key, prov.vendor, extractWaitTime(e.message) || 15000);
+        markRateLimited(prov, extractWaitTime(e.message) || 15000);
       }
     }
   }
@@ -461,6 +509,8 @@ async function handleSolveForm(blocks, tempInstruction, tabId) {
   }
   isSolving = true;
   brokenProviders = {}; // Reset broken providers list for this new run
+
+  const solveStartTime = Date.now();
 
   try {
     await updateSolverStatus("solving", "Initializing...", { blocksCount: blocks?.length || 0 });
@@ -519,13 +569,16 @@ Example Output:
   ]
 }`;
 
-    const { providerKeys, userProfile } = await chrome.storage.local.get(["providerKeys", "userProfile"]);
+    const { providerKeys: rawProviderKeys, userProfile, missingContextHandling } = await chrome.storage.local.get(["providerKeys", "userProfile", "missingContextHandling"]);
 
-    await writeLog("Config Loaded", `Loaded ${providerKeys?.length || 0} providers. User Profile context size: ${userProfile ? userProfile.trim().length : 0} chars.`);
-    debugLog("Engine", `Loaded ${providerKeys?.length || 0} provider(s)`);
-    debugLog("Engine", "Priority:", providerKeys?.map(p => p.vendor));
+    // Expand Groq into multi-model pool — each model = separate TPM bucket
+    const providerKeys = expandProviders(rawProviderKeys || []);
+    const groqModelCount = providerKeys.filter(p => p.vendor === 'groq').length;
 
-    if (!providerKeys || providerKeys.length === 0) {
+    await writeLog("Config Loaded", `Loaded ${rawProviderKeys?.length || 0} configured providers → expanded to ${providerKeys.length} virtual providers (${groqModelCount} Groq models × ${GROQ_MODEL_POOL.length} pool). User Profile: ${userProfile ? userProfile.trim().length : 0} chars.`);
+    debugLog("Engine", `Expanded providers:`, providerKeys.map(p => `${p.vendor}/${p.modelLabel || p.model || 'default'}`));
+
+    if (!rawProviderKeys || rawProviderKeys.length === 0) {
       await writeLog("Error", "No LLM providers configured. Solve halted.");
       await updateSolverStatus("error", "No LLM providers configured. Please add an API key in settings.");
       isSolving = false;
@@ -543,7 +596,17 @@ Example Output:
       await writeLog("Orchestrator Action", "Appended temporary prompt/context instructions to the system instructions.");
     }
 
-    const finalSystemPrompt = systemPrompt + profileContext + tempContext;
+    let missingContextInstructions = "";
+    const contextMode = missingContextHandling || "print_not_provided";
+    if (contextMode === "print_not_provided") {
+        missingContextInstructions = `\n6. IMPORTANT - MISSING CONTEXT: If a question asks for personal information (like a link, specific ID, personal experience, etc.) and it is NOT explicitly provided in the USER PROFILE or TEMPORARY INSTRUCTIONS, you MUST output the exact string "Not Provided" for TEXT_INPUT fields. Do NOT invent a fake response.\n`;
+    } else if (contextMode === "blank") {
+        missingContextInstructions = `\n6. IMPORTANT - MISSING CONTEXT: If a question asks for personal information (like a link, specific ID, personal experience, etc.) and it is NOT explicitly provided in the USER PROFILE or TEMPORARY INSTRUCTIONS, you MUST output an empty string "" for TEXT_INPUT fields. Do NOT invent a fake response.\n`;
+    } else if (contextMode === "ai_generated") {
+        missingContextInstructions = `\n6. IMPORTANT - MISSING CONTEXT: If a question asks for personal information and it is NOT explicitly provided in the USER PROFILE or TEMPORARY INSTRUCTIONS, you are authorized to invent a plausible, professional, and generic AI-generated response that fulfills the requirements of the TEXT_INPUT field.\n`;
+    }
+
+    const finalSystemPrompt = systemPrompt + missingContextInstructions + profileContext + tempContext;
     const fullPrompt = JSON.stringify(blocks, null, 2);
 
     const totalTokens = estimateTokens(finalSystemPrompt) + estimateTokens(fullPrompt);
@@ -562,31 +625,31 @@ Example Output:
     let providerUsed = null;
 
     for (const prov of providerKeys) {
-      if (isProviderBroken(prov.key)) {
-        await writeLog("API Skips", `Skipping broken/expired vendor: ${prov.vendor.toUpperCase()}`);
+      if (isProviderBroken(prov)) {
+        await writeLog("API Skips", `Skipping broken/expired vendor: ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model}`);
         continue;
       }
-      if (isProviderRateLimited(prov.key, prov.vendor)) {
-        await writeLog("API Skips", `Skipping rate-limited vendor: ${prov.vendor.toUpperCase()}`);
-        continue;
-      }
-
-      // Skip Groq for full payload if we know it's too large
-      if (prov.vendor === "groq" && totalTokens > 5000) {
-        await writeLog("API Skips", `Skipping Groq full payload (est. tokens ${totalTokens} > 5000 TPM safety threshold)`);
-        debugWarn("Full Shot", "Groq skipped — payload would exceed TPM limit");
+      if (isProviderRateLimited(prov)) {
+        await writeLog("API Skips", `Skipping rate-limited vendor: ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model}`);
         continue;
       }
 
-      await writeLog("API Request", `Sending full payload to ${prov.vendor.toUpperCase()}`);
-      debugLog("Full Shot", `→ ${prov.vendor.toUpperCase()}`);
-      await updateSolverStatus("solving", `Solving all fields via ${prov.vendor.toUpperCase()}...`);
+      // Skip Groq for full payload only if estimated tokens clearly exceed safe threshold
+      if (prov.vendor === "groq" && totalTokens > GROQ_TPM_SAFE) {
+        await writeLog("API Skips", `Skipping Groq full payload (est. tokens ${totalTokens} > ${GROQ_TPM_SAFE} TPM safety threshold). Will fall through to batching.`);
+        debugWarn("Full Shot", `Groq skipped — payload ${totalTokens} tok > ${GROQ_TPM_SAFE} threshold`);
+        continue;
+      }
+
+      await writeLog("API Request", `Sending full payload to ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model}`);
+      debugLog("Full Shot", `→ ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model}`);
+      await updateSolverStatus("solving", `Solving via ${prov.modelLabel || prov.vendor.toUpperCase()}...`);
 
       try {
-        const raw = await executeProvider(prov.vendor, prov.key, finalSystemPrompt, fullPrompt);
+        const raw = await executeProvider(prov, finalSystemPrompt, fullPrompt);
         const rawStr = raw || "";
         debugLog("Full Shot", `Response length: ${rawStr.length} chars`);
-        await writeLog("API Response", `Success from ${prov.vendor.toUpperCase()}. Received ${rawStr.length} chars.`);
+        await writeLog("API Response", `Success from ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model}. Received ${rawStr.length} chars.`);
 
         const answers = extractJSON(rawStr);
         await writeLog("JSON Parsing", `Parsed JSON answers for ${answers?.length || 0} blocks.`);
@@ -594,24 +657,25 @@ Example Output:
         
         await writeLog("Retry Check", "Checking if any answers are empty/partial and require individual retries...");
         strategy1Answers = await retryEmptyPolymorphicAnswers(normalized, blocks, providerKeys, finalSystemPrompt);
-        providerUsed = prov.vendor;
+        providerUsed = `${prov.vendor}/${prov.modelLabel || prov.model}`;
         break;
 
       } catch (e) {
-        await writeLog("API Failure", `Full payload failed for ${prov.vendor.toUpperCase()}: ${e.message}`);
-        debugError("Full Shot", `${prov.vendor.toUpperCase()} failed:`, e.message);
+        await writeLog("API Failure", `Full payload failed for ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model}: ${e.message}`);
+        debugError("Full Shot", `${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model} failed:`, e.message);
 
         const parsedErr = parseError(e);
         if (parsedErr.category === "INVALID_KEY" || parsedErr.category === "EXPIRED_KEY") {
-          markProviderBroken(prov.key, prov.vendor);
-          await updateSolverStatus("solving", `${prov.vendor.toUpperCase()} key ${parsedErr.category === "INVALID_KEY" ? "invalid" : "expired"}. Switching provider...`);
+          markProviderBroken(prov);
+          await updateSolverStatus("solving", `${prov.modelLabel || prov.vendor} key invalid/expired. Trying next model...`);
         }
 
         if (isRateLimitError(e.message)) {
           const wait = extractWaitTime(e.message) || 15000;
-          await writeLog("Rate Limit", `Marked ${prov.vendor.toUpperCase()} rate-limited for ${wait / 1000} seconds.`);
-          markRateLimited(prov.key, prov.vendor, wait);
-          continue;
+          await writeLog("Rate Limit", `${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model} rate-limited for ${wait / 1000}s. Rotating to next model...`);
+          markRateLimited(prov, wait);
+          await updateSolverStatus("solving", `${prov.modelLabel || prov.model} throttled — trying next Groq model...`);
+          continue; // instantly try next model, no sleep!
         }
         if (isPayloadTooLarge(e.message)) continue;
       }
@@ -680,92 +744,84 @@ Example Output:
 
       let batchAnswers = null;
       let attempt = 0;
-      const MAX_BATCH_ATTEMPTS = 2;
+      const MAX_BATCH_ATTEMPTS = 15;
 
       while (attempt < MAX_BATCH_ATTEMPTS && !batchAnswers) {
         attempt++;
         
-        // If ALL configured keys are currently rate-limited or broken, wait for the shortest remaining cooldown
-        const now = Date.now();
+        // Check if ALL models are rate-limited — if so, wait for shortest recovery
         const activeKeys = providerKeys.filter(p => {
-          const cooldownEnd = rateLimitedProviders[p.key];
-          return (!cooldownEnd || now > cooldownEnd) && !isProviderBroken(p.key);
+          const id = provId(p);
+          const cooldownEnd = rateLimitedProviders[id];
+          return (!cooldownEnd || Date.now() > cooldownEnd) && !isProviderBroken(p);
         });
         
         if (activeKeys.length === 0) {
-          const nonBrokenKeys = providerKeys.filter(p => !isProviderBroken(p.key));
+          const nonBrokenKeys = providerKeys.filter(p => !isProviderBroken(p));
           if (nonBrokenKeys.length > 0) {
             let shortestWait = Infinity;
-            let shortestKey = null;
-            for (const prov of nonBrokenKeys) {
-              const limitTime = rateLimitedProviders[prov.key];
+            let shortestId = null;
+            for (const p of nonBrokenKeys) {
+              const id = provId(p);
+              const limitTime = rateLimitedProviders[id];
               if (limitTime) {
-                const remaining = limitTime - now;
+                const remaining = limitTime - Date.now();
                 if (remaining < shortestWait) {
                   shortestWait = remaining;
-                  shortestKey = prov.key;
+                  shortestId = id;
                 }
               }
             }
             
-            if (shortestKey && shortestWait > 0 && shortestWait !== Infinity) {
+            if (shortestId && shortestWait > 0 && shortestWait !== Infinity) {
               const waitSecs = (shortestWait / 1000).toFixed(1);
               await writeLog("Rate Limit Wait", `All keys are currently rate-limited. Waiting ${waitSecs}s for the shortest cooldown to expire...`);
               debugWarn("Batch Orchestrator", `All keys rate-limited. Waiting ${waitSecs}s...`);
               await sleepWithCountdown(shortestWait + 1000, "All APIs on cooldown. Waiting for slot");
-              delete rateLimitedProviders[shortestKey];
+              delete rateLimitedProviders[shortestId];
             }
           }
         }
 
         for (const prov of providerKeys) {
-          if (isProviderBroken(prov.key)) {
-            await writeLog("API Skips", `Skipping broken/expired vendor ${prov.vendor.toUpperCase()} in batch ${bIdx + 1}`);
+          if (isProviderBroken(prov)) {
+            await writeLog("API Skips", `Skipping broken/expired ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model} in batch ${bIdx + 1}`);
             continue;
           }
-          if (isProviderRateLimited(prov.key, prov.vendor)) {
-            await writeLog("API Skips", `Skipping rate-limited vendor ${prov.vendor.toUpperCase()} for batch ${bIdx + 1} (attempt ${attempt})`);
+          if (isProviderRateLimited(prov)) {
+            await writeLog("API Skips", `Skipping rate-limited ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model} for batch ${bIdx + 1}`);
             continue;
           }
 
-          await writeLog("API Request", `Sending batch ${bIdx + 1} (attempt ${attempt}/${MAX_BATCH_ATTEMPTS}) to ${prov.vendor.toUpperCase()}`);
-          await updateSolverStatus("solving", `Solving batch ${bIdx + 1}/${batches.length} via ${prov.vendor.toUpperCase()}...`);
+          await writeLog("API Request", `Batch ${bIdx + 1} (attempt ${attempt}/${MAX_BATCH_ATTEMPTS}) → ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model}`);
+          await updateSolverStatus("solving", `Solving batch ${bIdx + 1}/${batches.length} via ${prov.modelLabel || prov.vendor.toUpperCase()}...`);
           try {
-            const raw = await executeProvider(prov.vendor, prov.key, finalSystemPrompt, batchPrompt);
+            const raw = await executeProvider(prov, finalSystemPrompt, batchPrompt);
             const rawStr = raw || "";
-            await writeLog("API Response", `Success from ${prov.vendor.toUpperCase()} for batch ${bIdx + 1} (attempt ${attempt}). Received ${rawStr.length} chars.`);
+            await writeLog("API Response", `Success from ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model} for batch ${bIdx + 1}. Received ${rawStr.length} chars.`);
             const parsed = extractJSON(rawStr);
 
             const parsedArr = Array.isArray(parsed) ? parsed : (parsed.answers || [parsed]);
             batchAnswers = normalizePolymorphicAnswers(parsedArr, batch);
-            providerUsed = prov.vendor;
-            debugLog(`Batch ${bIdx + 1}`, `✅ ${prov.vendor.toUpperCase()} on attempt ${attempt}`);
+            providerUsed = `${prov.vendor}/${prov.modelLabel || prov.model}`;
+            debugLog(`Batch ${bIdx + 1}`, `✅ ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model} on attempt ${attempt}`);
             break;
 
           } catch (e) {
-            await writeLog("API Failure", `Batch ${bIdx + 1} (attempt ${attempt}/${MAX_BATCH_ATTEMPTS}) failed for ${prov.vendor.toUpperCase()}: ${e.message}`);
-            debugError(`Batch ${bIdx + 1}`, `${prov.vendor.toUpperCase()}: ${e.message}`);
+            await writeLog("API Failure", `Batch ${bIdx + 1} attempt ${attempt} failed for ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model}: ${e.message}`);
+            debugError(`Batch ${bIdx + 1}`, `${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model}: ${e.message}`);
             
             const parsedErr = parseError(e);
             if (parsedErr.category === "INVALID_KEY" || parsedErr.category === "EXPIRED_KEY") {
-              markProviderBroken(prov.key, prov.vendor);
-              await updateSolverStatus("solving", `${prov.vendor.toUpperCase()} key ${parsedErr.category === "INVALID_KEY" ? "invalid" : "expired"}. Switching provider...`);
+              markProviderBroken(prov);
+              await updateSolverStatus("solving", `${prov.modelLabel || prov.vendor} key invalid/expired. Trying next model...`);
             }
 
             if (isRateLimitError(e.message)) {
               const wait = extractWaitTime(e.message) || 15000;
-              await writeLog("Rate Limit", `Marked ${prov.vendor.toUpperCase()} rate-limited for ${wait / 1000}s on batch failure.`);
-              markRateLimited(prov.key, prov.vendor, wait);
-
-              // If ALL keys are now rate-limited or broken, wait for the shortest cooldown
-              const available = providerKeys.filter(p => !isProviderRateLimited(p.key, p.vendor) && !isProviderBroken(p.key));
-              if (available.length === 0) {
-                await writeLog("Rate Limit Wait", `All keys are rate-limited or broken. Waiting for cooldown of ${wait / 1000}s...`);
-                debugWarn(`Batch ${bIdx + 1}`, `All keys rate-limited or broken. Honoring cooldown...`);
-                await sleepWithCountdown(wait + 2000, "API Rate limit hit. Cooling down");
-                // Clear the rate limit for the key to allow retry
-                delete rateLimitedProviders[prov.key];
-              }
+              await writeLog("Rate Limit", `${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model} rate-limited ${wait / 1000}s. Trying next model...`);
+              markRateLimited(prov, wait);
+              await updateSolverStatus("solving", `${prov.modelLabel || prov.model} throttled — rotating...`);
             }
           }
         }
@@ -824,6 +880,26 @@ Example Output:
           if (fillResponse?.status === "success") {
             await writeLog("Completion", `Injected answers into tab successfully. Warning: ${warning || "None"}`);
             await updateSolverStatus(statusClass, statusMsg, { providerUsed, warning, answers: allAnswers, active: false });
+            
+            // Track Usage
+            try {
+              const { user } = await chrome.storage.local.get('user');
+              if (user && user.email && check.totalCount > 0) {
+                await fetch('http://localhost:3000/api/usage', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    email: user.email,
+                    time_taken_seconds: Math.round((Date.now() - solveStartTime) / 1000),
+                    questions_detected: check.totalCount,
+                    questions_filled: check.totalCount - check.emptyCount,
+                    success: !check.allEmpty
+                  })
+                });
+              }
+            } catch (e) {
+              console.error('Failed to log usage:', e);
+            }
           } else {
             await writeLog("Error", `Failed to apply answers to the form: ${fillResponse?.message || "No response"}`);
             await updateSolverStatus("error", "Failed to apply answers to the form.", { active: false });
@@ -842,23 +918,37 @@ Example Output:
   }
 }
 
-async function executeProvider(vendor, apiKey, sysPrompt, usrPrompt) {
-  if (vendor === "openai" || vendor === "groq") return callOpenAILike(vendor, apiKey, sysPrompt, usrPrompt);
-  if (vendor === "gemini") return callGemini(apiKey, sysPrompt, usrPrompt);
+async function executeProvider(prov, sysPrompt, usrPrompt) {
+  const { vendor, key, model } = prov;
+  if (vendor === "groq" || vendor === "openrouter" || vendor === "nvidia") return callOpenAILike(vendor, key, sysPrompt, usrPrompt, model);
   throw new Error(`Unknown vendor: ${vendor}`);
 }
 
-async function callOpenAILike(vendor, apiKey, sysPrompt, usrPrompt) {
-  const url = vendor === "groq"
-    ? "https://api.groq.com/openai/v1/chat/completions"
-    : "https://api.openai.com/v1/chat/completions";
-  const model = vendor === "groq" ? "llama-3.1-8b-instant" : "gpt-4o-mini";
+async function callOpenAILike(vendor, apiKey, sysPrompt, usrPrompt, modelOverride = null) {
+  let url = "";
+  let defaultModel = "";
+  const headers = { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" };
+
+  if (vendor === "groq") {
+    url = "https://api.groq.com/openai/v1/chat/completions";
+    defaultModel = "llama-3.1-8b-instant";
+  } else if (vendor === "openrouter") {
+    url = "https://openrouter.ai/api/v1/chat/completions";
+    defaultModel = "anthropic/claude-3.5-sonnet";
+    headers["HTTP-Referer"] = "https://formai-extension.com"; // Optional, for rankings
+    headers["X-Title"] = "FormAI Extension"; // Optional, for rankings
+  } else if (vendor === "nvidia") {
+    url = "https://integrate.api.nvidia.com/v1/chat/completions";
+    defaultModel = "meta/llama-3.3-70b-instruct";
+  }
+
+  const model = modelOverride || defaultModel;
 
   debugLog(vendor.toUpperCase(), `${model} | ~${estimateTokens(usrPrompt)} prompt tokens`);
 
   const response = await fetchWithTimeout(url, {
     method: "POST",
-    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    headers: headers,
     body: JSON.stringify({
       model,
       messages: [
@@ -866,7 +956,7 @@ async function callOpenAILike(vendor, apiKey, sysPrompt, usrPrompt) {
         { role: "user", content: usrPrompt }
       ],
       temperature: 0.1,
-      max_tokens: 3000
+      max_tokens: 4096  // Raised from 3000 — experiment shows 15 blocks needs 611 completion tokens
     })
   });
 
@@ -882,31 +972,4 @@ async function callOpenAILike(vendor, apiKey, sysPrompt, usrPrompt) {
   const usage = data.usage;
   debugLog(vendor.toUpperCase(), `Tokens: prompt=${usage?.prompt_tokens}, completion=${usage?.completion_tokens}, total=${usage?.total_tokens}`);
   return data.choices?.[0]?.message?.content || "";
-}
-
-async function callGemini(apiKey, sysPrompt, usrPrompt) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-  const combined = `${sysPrompt}\n\n=== QUESTIONS ===\n${usrPrompt}`;
-
-  debugLog("GEMINI", `gemini-2.0-flash | ~${estimateTokens(combined)} tokens`);
-
-  const response = await fetchWithTimeout(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ contents: [{ parts: [{ text: combined }] }] })
-  });
-
-  debugLog("GEMINI", `HTTP ${response.status}`);
-
-  if (!response.ok) {
-    let hint = response.statusText;
-    try { const b = await response.json(); if (b.error?.message) hint = b.error.message; } catch(e) {}
-    throw new Error(`HTTP ${response.status}: ${hint}`);
-  }
-
-  const data = await response.json();
-  if (data.usageMetadata) {
-    debugLog("GEMINI", `Tokens: prompt=${data.usageMetadata.promptTokenCount}, completion=${data.usageMetadata.candidatesTokenCount}`);
-  }
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 }

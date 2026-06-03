@@ -6,10 +6,10 @@ const statsPanel = document.getElementById("stats-panel");
 const statFieldsVal = document.getElementById("stat-fields-val");
 const errorBox = document.getElementById("error-message");
 const providerBadge = document.getElementById("provider-badge");
-const downloadLogsBtn = document.getElementById("download-logs-btn");
-const clearLogsBtn = document.getElementById("clear-logs-btn");
+const progressBar = document.getElementById("progress-bar");
 
-const settingsArea = document.getElementById("settings-area");
+const viewSolve = document.getElementById("view-solve");
+const viewSettings = document.getElementById("view-settings");
 const toggleSettingsBtn = document.getElementById("toggle-settings-btn");
 const saveKeyBtn = document.getElementById("save-key-btn");
 const profileInput = document.getElementById("profile-input");
@@ -17,6 +17,43 @@ const chatInput = document.getElementById("chat-input");
 
 const providerListEl = document.getElementById("provider-list");
 const addProviderBtn = document.getElementById("add-provider-btn");
+const contextBtns = document.querySelectorAll(".context-btn");
+
+let missingContextState = "print_not_provided";
+
+function updateContextUI() {
+    contextBtns.forEach(btn => {
+        if (btn.dataset.value === missingContextState) {
+            btn.classList.remove('bg-background');
+            btn.classList.add('bg-primary-fixed');
+        } else {
+            btn.classList.remove('bg-primary-fixed');
+            btn.classList.add('bg-background');
+        }
+    });
+}
+
+contextBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        missingContextState = btn.dataset.value;
+        updateContextUI();
+        chrome.storage.local.set({ missingContextHandling: missingContextState });
+    });
+});
+
+// Button interaction
+solveBtn.addEventListener('mousedown', () => {
+    solveBtn.classList.remove('neo-shadow');
+    solveBtn.classList.add('neo-shadow-active');
+});
+solveBtn.addEventListener('mouseup', () => {
+    solveBtn.classList.add('neo-shadow');
+    solveBtn.classList.remove('neo-shadow-active');
+});
+solveBtn.addEventListener('mouseleave', () => {
+    solveBtn.classList.add('neo-shadow');
+    solveBtn.classList.remove('neo-shadow-active');
+});
 
 function writeLog(category, message) {
     chrome.runtime.sendMessage({
@@ -29,14 +66,93 @@ function writeLog(category, message) {
 
 writeLog("UI Action", "Popup interface opened.");
 
+// ─── Progress Bar Helpers ────────────────────────────────────────────────────
+let progressAnimFrame = null;
+let currentProgress = 0;
+let targetProgress = 0;
+let totalBatchCount = 0; // Track total batches for real-time calculation
+
+function animateToTarget() {
+    if (progressAnimFrame) cancelAnimationFrame(progressAnimFrame);
+    function step() {
+        const diff = targetProgress - currentProgress;
+        if (Math.abs(diff) < 0.3) {
+            currentProgress = targetProgress;
+            progressBar.style.width = currentProgress + "%";
+            return;
+        }
+        currentProgress += diff * 0.12; // Ease out
+        progressBar.style.width = currentProgress + "%";
+        progressAnimFrame = requestAnimationFrame(step);
+    }
+    step();
+}
+
+function setProgress(percent) {
+    targetProgress = Math.max(0, Math.min(100, percent));
+    animateToTarget();
+}
+
+function setProgressSolving(batchDone, batchTotal) {
+    // Real-time: each completed batch = proportional fill (leave 10% headroom for final injection)
+    const pct = batchTotal > 0 ? 10 + ((batchDone / batchTotal) * 80) : 50;
+    progressBar.classList.add('active');
+    setProgress(pct);
+}
+
+function pulseProgress() {
+    // Used only for strategy-1 (full payload, no batch info)
+    progressBar.classList.add('active');
+    setProgress(55);
+}
+
+function resetProgress() {
+    if (progressAnimFrame) cancelAnimationFrame(progressAnimFrame);
+    progressBar.classList.remove('active');
+    currentProgress = 0;
+    targetProgress = 0;
+    progressBar.style.width = "0%";
+}
+
+function completeProgress() {
+    progressBar.classList.remove('active');
+    setProgress(100);
+    setTimeout(() => resetProgress(), 900);
+}
+
+// Parse "batch X/Y" from solver status text and update progress
+function updateProgressFromStatusText(text) {
+    const batchMatch = text.match(/batch\s+(\d+)\/(\d+)/i);
+    if (batchMatch) {
+        const done = parseInt(batchMatch[1]);
+        const total = parseInt(batchMatch[2]);
+        totalBatchCount = total;
+        setProgressSolving(done, total);
+    } else if (text.toLowerCase().includes("solving all fields") || text.toLowerCase().includes("solving")) {
+        pulseProgress();
+    }
+}
+
+// Pop-in animation for field count
+function popUpdateFieldCount(val) {
+    statFieldsVal.innerText = val;
+    statFieldsVal.classList.remove('pop-in');
+    void statFieldsVal.offsetWidth; // force reflow
+    statFieldsVal.classList.add('pop-in');
+}
+
 let activeProviders = [{ vendor: "groq", key: "" }];
 
 // Load saved data and restore active solver state if running
-chrome.storage.local.get(["providerKeys", "userProfile", "solverState"], (data) => {
+chrome.storage.local.get(["providerKeys", "userProfile", "solverState", "missingContextHandling"], (data) => {
     if (data.providerKeys && Array.isArray(data.providerKeys)) {
         activeProviders = data.providerKeys;
     }
     if (data.userProfile) profileInput.value = data.userProfile;
+    if (data.missingContextHandling) {
+        missingContextState = data.missingContextHandling;
+    }
+    updateContextUI();
     renderProviders();
 
     if (data.solverState) {
@@ -46,13 +162,12 @@ chrome.storage.local.get(["providerKeys", "userProfile", "solverState"], (data) 
 
 function restoreSolverState(state) {
     if (state.active) {
-        aiResponseArea.style.display = "block";
-        aiResponseArea.classList.add("active");
-        statsPanel.style.display = "block";
-        statFieldsVal.innerText = state.blocksCount || 0;
+        // Only update field count if we have a real value
+        if (state.blocksCount) popUpdateFieldCount(state.blocksCount);
         
         if (state.stateClass === "error") {
             showError(state.text);
+            resetProgress();
         } else {
             if (state.warning === "PARTIAL_EXHAUSTED") {
                 errorBox.innerText = state.text;
@@ -62,6 +177,7 @@ function restoreSolverState(state) {
                 errorBox.style.display = "none";
             }
             updateStatus(state.text, state.stateClass);
+            updateProgressFromStatusText(state.text);
         }
 
         if (state.providerUsed) {
@@ -71,15 +187,13 @@ function restoreSolverState(state) {
             providerBadge.style.display = "none";
         }
     } else {
-        // If completed or failed, show final status
+        // Final state
         if (state.stateClass) {
-            aiResponseArea.style.display = "block";
-            aiResponseArea.classList.add("active");
-            statsPanel.style.display = "block";
-            statFieldsVal.innerText = state.blocksCount || 0;
+            if (state.blocksCount) popUpdateFieldCount(state.blocksCount);
             
             if (state.stateClass === "error") {
                 showError(state.text);
+                setProgress(0);
             } else {
                 if (state.warning === "PARTIAL_EXHAUSTED") {
                     errorBox.innerText = state.text;
@@ -91,6 +205,7 @@ function restoreSolverState(state) {
                     errorBox.style.display = "none";
                 }
                 updateStatus(state.text, state.stateClass);
+                completeProgress();
             }
             
             if (state.providerUsed) {
@@ -113,19 +228,19 @@ function renderProviders() {
     providerListEl.innerHTML = "";
     activeProviders.forEach((prov, index) => {
         const row = document.createElement("div");
-        row.className = "provider-row";
+        row.className = "flex gap-2 items-center border-2 border-primary bg-background p-2";
         row.draggable = true;
         row.dataset.index = index;
 
         row.innerHTML = `
-            <span style="cursor: grab;">⠿</span>
-            <select class="vendor-select">
+            <span class="cursor-move material-symbols-outlined select-none text-primary/50 shrink-0" style="font-size: 20px;">drag_indicator</span>
+            <select class="vendor-select border-2 border-primary bg-background text-sm font-bold uppercase p-1 focus:outline-none w-20 shrink-0">
                 <option value="groq" ${prov.vendor === 'groq' ? 'selected' : ''}>Groq</option>
-                <option value="openai" ${prov.vendor === 'openai' ? 'selected' : ''}>OpenAI</option>
-                <option value="gemini" ${prov.vendor === 'gemini' ? 'selected' : ''}>Gemini</option>
+                <option value="openrouter" ${prov.vendor === 'openrouter' ? 'selected' : ''}>OpenRouter</option>
+                <option value="nvidia" ${prov.vendor === 'nvidia' ? 'selected' : ''}>NVIDIA NIM</option>
             </select>
-            <input type="password" class="key-input" placeholder="API Key..." value="${prov.key}">
-            <button class="remove-btn">✕</button>
+            <input type="password" class="key-input flex-grow min-w-0 border-2 border-primary bg-background p-1 font-mono text-sm focus:outline-none placeholder:text-primary/40" placeholder="API Key..." value="${prov.key}">
+            <button class="remove-btn shrink-0 border-2 border-transparent hover:border-error text-error p-1 transition-all flex items-center justify-center"><span class="material-symbols-outlined" style="font-size: 18px;">close</span></button>
         `;
 
         // Event listeners for updating internal state
@@ -168,15 +283,29 @@ function renderProviders() {
 }
 
 addProviderBtn.addEventListener("click", () => {
-    activeProviders.push({ vendor: "openai", key: "" });
+    activeProviders.push({ vendor: "openrouter", key: "" });
     renderProviders();
     writeLog("UI Action", "Added new provider row to settings.");
 });
 
 toggleSettingsBtn.addEventListener("click", () => {
-    const isHidden = settingsArea.style.display === "none";
-    settingsArea.style.display = isHidden ? "flex" : "none";
-    writeLog("UI Action", `Settings panel ${isHidden ? "opened" : "closed"}.`);
+    const isSettingsHidden = viewSettings.classList.contains('hidden-pane');
+    if (isSettingsHidden) {
+        viewSolve.classList.add('hidden-pane');
+        viewSettings.classList.remove('hidden-pane');
+        toggleSettingsBtn.innerHTML = `
+          <span class="material-symbols-outlined btn-icon" style="font-size:16px;">home</span>
+          <span class="btn-label">Home</span>
+        `;
+    } else {
+        viewSolve.classList.remove('hidden-pane');
+        viewSettings.classList.add('hidden-pane');
+        toggleSettingsBtn.innerHTML = `
+          <span class="material-symbols-outlined btn-icon" style="font-size:16px;">settings</span>
+          <span class="btn-label">Settings</span>
+        `;
+    }
+    writeLog("UI Action", `Settings panel ${isSettingsHidden ? "opened" : "closed"}.`);
 });
 
 saveKeyBtn.addEventListener("click", () => {
@@ -185,7 +314,12 @@ saveKeyBtn.addEventListener("click", () => {
     const cleanProviders = activeProviders.filter(p => p.key.trim() !== "");
     chrome.storage.local.set({ providerKeys: cleanProviders, userProfile: profile }, () => {
         writeLog("UI Action", `Saved provider and user profile configurations. Providers: ${cleanProviders.map(p => p.vendor).join(', ')}`);
-        settingsArea.style.display = "none";
+        viewSolve.classList.remove('hidden-pane');
+        viewSettings.classList.add('hidden-pane');
+        toggleSettingsBtn.innerHTML = `
+          <span class="material-symbols-outlined btn-icon" style="font-size:16px;">settings</span>
+          <span class="btn-label">Settings</span>
+        `;
     });
 });
 
@@ -194,15 +328,15 @@ solveBtn.addEventListener("click", () => {
     // Auto-save any modified keys/profile inputs on click of Solve Form
     const profile = profileInput.value.trim();
     const cleanProviders = activeProviders.filter(p => p.key.trim() !== "");
-    chrome.storage.local.set({ providerKeys: cleanProviders, userProfile: profile });
+    chrome.storage.local.set({ providerKeys: cleanProviders, userProfile: profile, missingContextHandling: missingContextState });
 
-    aiResponseArea.style.display = "block";
     errorBox.style.display = "none";
     providerBadge.style.display = "none";
+    resetProgress();
     
     setTimeout(() => {
-        aiResponseArea.classList.add("active");
         updateStatus("Analyzing page structure...", "analyzing");
+        setProgress(10);
     }, 10);
     
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -232,13 +366,15 @@ solveBtn.addEventListener("click", () => {
             }
 
             writeLog("UI Action", `Successfully scanned ${blocks.length} blocks. Dispatching SOLVE_FORM to background orchestrator.`);
-            statsPanel.style.display = "block";
-            statFieldsVal.innerText = blocks.length;
+            // Immediately update field count with pop animation
+            popUpdateFieldCount(blocks.length);
 
             const batchSize = 8;
             const totalBatches = Math.ceil(blocks.length / batchSize);
+            totalBatchCount = totalBatches;
             const batchHint = totalBatches > 1 ? ` (${totalBatches} batches)` : "";
             updateStatus(`Solving ${blocks.length} blocks${batchHint}...`, "solving");
+            setProgress(8); // Start the bar moving immediately
 
             // Save initial state so background will update it
             chrome.storage.local.set({ 
@@ -272,13 +408,17 @@ solveBtn.addEventListener("click", () => {
 
 function updateStatus(text, stateClass) {
     statusText.innerText = text;
-    statusDot.className = `dot ${stateClass}`;
+    statusDot.className = `dot ${stateClass} w-3 h-3 rounded-full border-2 border-primary`;
+    if (stateClass === 'idle') statusDot.classList.add('bg-primary');
+    else if (stateClass === 'analyzing') statusDot.classList.add('bg-tertiary');
+    else if (stateClass === 'solving') statusDot.classList.add('bg-primary-container');
+    else if (stateClass === 'error') statusDot.classList.add('bg-secondary');
 }
 
 function showError(msg) {
     writeLog("Error", `UI error displayed: ${msg}`);
-    statusText.innerText = "Error Occurred";
-    statusDot.className = "dot error";
+    statusText.innerText = "Error";
+    statusDot.className = "dot error w-3 h-3 rounded-full border-2 border-primary bg-error";
     errorBox.innerText = msg;
     errorBox.style.display = "block";
     providerBadge.style.display = "none";
@@ -289,76 +429,6 @@ function showError(msg) {
     setTimeout(() => aiResponseArea.style.transform = "translateX(0)", 150);
 }
 
-// ─── Telemetry Event Listeners ──────────────────────────────────────────────
-
-downloadLogsBtn.addEventListener("click", () => {
-    chrome.storage.local.get(["telemetryLogs"], (data) => {
-        const logs = data.telemetryLogs || [];
-        
-        const headers = ["Timestamp", "Source", "Category", "Message"];
-        const csvRows = [headers.map(escapeCSVCell).join(",")];
-        
-        logs.forEach(log => {
-            const row = [
-                log.timestamp || "",
-                log.source || "",
-                log.category || "",
-                log.message || ""
-            ];
-            csvRows.push(row.map(escapeCSVCell).join(","));
-        });
-        
-        const csvString = csvRows.join("\r\n");
-        const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        
-        // Generate a filename with a clean timestamp
-        const now = new Date();
-        const timestampStr = now.getFullYear() +
-            String(now.getMonth() + 1).padStart(2, '0') +
-            String(now.getDate()).padStart(2, '0') + "_" +
-            String(now.getHours()).padStart(2, '0') +
-            String(now.getMinutes()).padStart(2, '0') +
-            String(now.getSeconds()).padStart(2, '0');
-            
-        link.setAttribute("download", `formai_telemetry_${timestampStr}.csv`);
-        link.style.visibility = "hidden";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        
-        writeLog("UI Action", `Telemetry logs downloaded. Total entries: ${logs.length}`);
-        
-        // Brief success indicator on button
-        const originalText = downloadLogsBtn.innerText;
-        downloadLogsBtn.innerText = "📥 Downloaded!";
-        downloadLogsBtn.style.borderColor = "rgba(16, 185, 129, 0.4)";
-        downloadLogsBtn.style.color = "#10B981";
-        setTimeout(() => {
-            downloadLogsBtn.innerText = originalText;
-            downloadLogsBtn.style.borderColor = "";
-            downloadLogsBtn.style.color = "";
-        }, 1500);
-    });
-});
-
-clearLogsBtn.addEventListener("click", () => {
-    chrome.storage.local.set({ telemetryLogs: [] }, () => {
-        writeLog("UI Action", "Telemetry logs cleared by user.");
-        const originalText = clearLogsBtn.innerText;
-        clearLogsBtn.innerText = "🗑️ Cleared!";
-        clearLogsBtn.style.borderColor = "rgba(16, 185, 129, 0.4)";
-        clearLogsBtn.style.color = "#10B981";
-        setTimeout(() => {
-            clearLogsBtn.innerText = originalText;
-            clearLogsBtn.style.borderColor = "rgba(239, 68, 68, 0.3)";
-            clearLogsBtn.style.color = "var(--error)";
-        }, 1500);
-    });
-});
 
 function escapeCSVCell(value) {
     if (value === null || value === undefined) return "";
@@ -366,3 +436,71 @@ function escapeCSVCell(value) {
     const escaped = str.replace(/"/g, '""');
     return `"${escaped}"`;
 }
+
+// ---- AUTHENTICATION HANDLING ----
+document.addEventListener('DOMContentLoaded', async () => {
+    const authBtn = document.getElementById('auth-btn');
+    if (!authBtn) return;
+
+    // Check if user is already logged in
+    const { user } = await chrome.storage.local.get('user');
+    if (user && user.email) {
+        // Change icon to show logged in state if desired
+        authBtn.classList.add('text-secondary');
+    }
+
+    authBtn.addEventListener('click', () => {
+        // First check if already logged in -> go straight to dashboard or onboarding
+        chrome.storage.local.get(['user', 'requires_onboarding'], (res) => {
+            if (res.user && res.user.email) {
+                if (res.requires_onboarding) {
+                    window.location.href = '../ui/onboarding.html';
+                } else {
+                    window.location.href = '../ui/dashboard.html';
+                }
+                return;
+            }
+
+            // Otherwise initiate OAuth
+            chrome.identity.getAuthToken({ interactive: true }, async function(token) {
+                if (chrome.runtime.lastError || !token) {
+                    console.error("Auth Error:", chrome.runtime.lastError);
+                    return;
+                }
+                
+                try {
+                    // Fetch basic profile info to send to backend
+                    const userInfoResp = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    const userInfo = await userInfoResp.json();
+                    
+                    // Call Vercel Backend
+                    const API_URL = 'http://localhost:3000/api/login';
+                    const resApi = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token, email: userInfo.email, name: userInfo.name })
+                    });
+
+                    const data = await resApi.json();
+                    if (data.success) {
+                        const userData = { ...data.user, oauth_token: token };
+                        await chrome.storage.local.set({ user: userData, requires_onboarding: data.requires_onboarding });
+                        
+                        if (data.requires_onboarding) {
+                            window.location.href = '../ui/onboarding.html';
+                        } else {
+                            window.location.href = '../ui/dashboard.html';
+                        }
+                    } else {
+                        console.error("Backend login failed:", data.error);
+                    }
+                } catch (err) {
+                    console.error("Fetch error during auth:", err);
+                }
+            });
+        });
+    });
+});
+

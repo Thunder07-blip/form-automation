@@ -1,5 +1,14 @@
 {
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ./popup/popup.css",
+    "experiment": "node scripts/llm_experiment.js"
+  },
   "dependencies": {
-    "jsdom": "^29.1.1"
+    "dotenv": "^17.4.2",
+    "jsdom": "^29.1.1",
+    "pg": "^8.21.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
   }
 }

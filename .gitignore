@@ -1,5 +1,7 @@
 # Dependency directory
 node_modules/
+backend/node_modules/
+.env
 
 # OS metadata
 .DS_Store

@@ -1,0 +1,5 @@
+{
+  "vendor": "nvidia",
+  "apiKey": "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",
+  "model": "nvidia/nemotron-3-nano-30b-a3b"
+}

@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Neo-Brutalist Shadows ─────────────────────────────────────── */
+.neo-shadow {
+    box-shadow: 4px 4px 0px 0px #1a1a1a;
+}
+.neo-shadow-active {
+    box-shadow: 1px 1px 0px 0px #1a1a1a;
+    transform: translate(3px, 3px);
+}
+
+/* ── Material Icons ────────────────────────────────────────────── */
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Textured Background ───────────────────────────────────────── */
+.bau-texture {
+    background-color: #f5f0e8;
+    background-image: radial-gradient(#1a1a1a 0.5px, transparent 0.5px);
+    background-size: 10px 10px;
+}
+
+/* ── View Pane Transitions ─────────────────────────────────────── */
+.view-pane {
+    transition: opacity 0.25s ease-in-out, transform 0.25s ease-in-out;
+}
+.hidden-pane {
+    display: none;
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+/* ── Body Size Lock ────────────────────────────────────────────── */
+body {
+    width: 420px;
+    height: 600px;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+/* ── Status Dots ───────────────────────────────────────────────── */
+.dot {
+    transition: background-color 0.4s ease, transform 0.2s ease;
+}
+.dot.idle   { background-color: #1a1a1a; }
+.dot.resolving { background-color: #FDE047; animation: dot-pulse 1s infinite; }
+.dot.error     { background-color: #ff3333; transform: scale(1.1); }
+
+/* ── Striped Bar Animation ─────────────────────────────────────── */
+@keyframes move-stripes {
+    0% { background-position: 0 0; }
+    100% { background-position: 28px 0; } /* 28px covers the hypotenuse of a 20px triangle */
+}
+.striped-bar.active {
+    animation: move-stripes 1s linear infinite;
+}
+
+.dot.success   { background-color: #22c55e; }
+.dot.error     { background-color: #e63b2e; }
+
+@keyframes dot-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%       { transform: scale(1.5); opacity: 0.6; }
+}
+
+/* ── Progress Bar ──────────────────────────────────────────────── */
+#progress-bar {
+    position: relative;
+    overflow: hidden;
+    background-color: #1a1a1a;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Shimmer overlay */
+#progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; right: 0; bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.35) 45%,
+        rgba(255, 255, 255, 0.55) 55%,
+        transparent 100%
+    );
+    animation: shimmer 1.4s infinite;
+}
+
+/* Yellow stripe when solving */
+#progress-bar.solving {
+    background: repeating-linear-gradient(
+        -45deg,
+        #1a1a1a 0px,
+        #1a1a1a 8px,
+        #ffcc00 8px,
+        #ffcc00 16px
+    );
+    background-size: 22px 100%;
+    animation: stripes-scroll 0.6s linear infinite;
+}
+
+@keyframes shimmer {
+    0%   { left: -100%; }
+    100% { left: 150%; }
+}
+
+@keyframes stripes-scroll {
+    0%   { background-position: 0 0; }
+    100% { background-position: 22px 0; }
+}
+
+/* ── Settings Button ───────────────────────────────────────────── */
+#toggle-settings-btn {
+    position: relative;
+    overflow: hidden;
+}
+#toggle-settings-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #1a1a1a;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    z-index: 0;
+}
+#toggle-settings-btn:hover::before { transform: translateX(0); }
+#toggle-settings-btn span,
+#toggle-settings-btn .btn-label { position: relative; z-index: 1; }
+#toggle-settings-btn:hover .btn-label { color: #f5f0e8; }
+#toggle-settings-btn:hover .btn-icon { color: #f5f0e8; }
+
+/* ── Context Buttons ───────────────────────────────────────────── */
+.context-btn {
+    transition: background-color 0.15s ease, transform 0.1s ease;
+}
+.context-btn:active { transform: scale(0.95); }
+
+/* ── Button Hover Lift ─────────────────────────────────────────── */
+#solve-btn {
+    transition: background-color 0.15s ease, color 0.15s ease,
+                box-shadow 0.1s ease, transform 0.1s ease;
+}
+
+/* ── Micro-animation: field count pop ─────────────────────────── */
+.pop-in {
+    animation: pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes pop {
+    0%   { transform: scale(0.7); opacity: 0.3; }
+    100% { transform: scale(1);   opacity: 1;   }
+}
+
+/* ── Header slide in ───────────────────────────────────────────── */
+header {
+    animation: slide-down 0.3s ease;
+}
+@keyframes slide-down {
+    from { transform: translateY(-8px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+}

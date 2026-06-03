@@ -1,0 +1,544 @@
+{
+  "vendor": "nvidia",
+  "model": "nvidia/nemotron-3-nano-30b-a3b",
+  "r1": [
+    {
+      "n": 1,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 1612,
+      "label": "batch_n1",
+      "usage": {
+        "promptTokens": 324,
+        "completionTokens": 178,
+        "totalTokens": 502
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 302
+    },
+    {
+      "n": 2,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 2209,
+      "label": "batch_n2",
+      "usage": {
+        "promptTokens": 411,
+        "completionTokens": 310,
+        "totalTokens": 721
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 380
+    },
+    {
+      "n": 4,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4137,
+      "label": "batch_n4",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 673,
+        "totalTokens": 1213
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "n": 6,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 7605,
+      "label": "batch_n6",
+      "usage": {
+        "promptTokens": 700,
+        "completionTokens": 976,
+        "totalTokens": 1676
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 4,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 5,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"8-9\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 635
+    },
+    {
+      "n": 8,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 6178,
+      "label": "batch_n8",
+      "usage": {
+        "promptTokens": 833,
+        "completionTokens": 1089,
+        "totalTokens": 1922
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 4,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 5,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"8-9\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 6,\n      \"actions\": [\n        {\n          \"type\": \"CHECKBOXES\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 7,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 759
+    },
+    {
+      "n": 10,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 10660,
+      "label": "batch_n10",
+      "usage": {
+        "promptTokens": 971,
+        "completionTokens": 1559,
+        "totalTokens": 2530
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 4,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 5,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"8-9\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 6,\n      \"actions\": [\n        {\n          \"type\": \"CHECKBOXES\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 7,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 8,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 9,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 883
+    },
+    {
+      "n": 15,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 9760,
+      "label": "batch_n15",
+      "usage": {
+        "promptTokens": 1347,
+        "completionTokens": 1343,
+        "totalTokens": 2690
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 4,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 5,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"8-9\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 6,\n      \"actions\": [\n        {\n          \"type\": \"CHECKBOXES\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 7,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 8,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 9,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 10,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 11,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 12,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 13,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"8-9\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 14,\n      \"actions\": [\n        {\n          \"type\": \"CHECKBOXES\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 1217
+    }
+  ],
+  "results2": [
+    {
+      "req": 1,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4131,
+      "label": "burst_req_1",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 630,
+        "totalTokens": 1170
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 2,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4095,
+      "label": "burst_req_2",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 623,
+        "totalTokens": 1163
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 3,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4523,
+      "label": "burst_req_3",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 686,
+        "totalTokens": 1226
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 4,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4089,
+      "label": "burst_req_4",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 639,
+        "totalTokens": 1179
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 5,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4497,
+      "label": "burst_req_5",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 674,
+        "totalTokens": 1214
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 6,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4250,
+      "label": "burst_req_6",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 628,
+        "totalTokens": 1168
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 7,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4251,
+      "label": "burst_req_7",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 585,
+        "totalTokens": 1125
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 8,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 3829,
+      "label": "burst_req_8",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 570,
+        "totalTokens": 1110
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 9,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4267,
+      "label": "burst_req_9",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 634,
+        "totalTokens": 1174
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 10,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4189,
+      "label": "burst_req_10",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 660,
+        "totalTokens": 1200
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 11,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4502,
+      "label": "burst_req_11",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 636,
+        "totalTokens": 1176
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 12,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 3786,
+      "label": "burst_req_12",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 527,
+        "totalTokens": 1067
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 13,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4204,
+      "label": "burst_req_13",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 675,
+        "totalTokens": 1215
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 14,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 3681,
+      "label": "burst_req_14",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 576,
+        "totalTokens": 1116
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 15,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 3696,
+      "label": "burst_req_15",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 589,
+        "totalTokens": 1129
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 16,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 4133,
+      "label": "burst_req_16",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 666,
+        "totalTokens": 1206
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 17,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 3733,
+      "label": "burst_req_17",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 580,
+        "totalTokens": 1120
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 18,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 3696,
+      "label": "burst_req_18",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 574,
+        "totalTokens": 1114
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 19,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 3787,
+      "label": "burst_req_19",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 674,
+        "totalTokens": 1214
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    },
+    {
+      "req": 20,
+      "ok": true,
+      "httpStatus": 200,
+      "elapsed": 3892,
+      "label": "burst_req_20",
+      "usage": {
+        "promptTokens": 540,
+        "completionTokens": 568,
+        "totalTokens": 1108
+      },
+      "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+      "parsedOk": true,
+      "promptTokensEst": 499
+    }
+  ],
+  "r3": [
+    {
+      "cooldownMs": 1000,
+      "pre": {
+        "ok": true,
+        "httpStatus": 200,
+        "elapsed": 4914,
+        "label": "pre_cd_1000ms",
+        "usage": {
+          "promptTokens": 540,
+          "completionTokens": 581,
+          "totalTokens": 1121
+        },
+        "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+        "parsedOk": true,
+        "promptTokensEst": 499
+      },
+      "post": {
+        "ok": true,
+        "httpStatus": 200,
+        "elapsed": 5784,
+        "label": "post_cd_1000ms",
+        "usage": {
+          "promptTokens": 540,
+          "completionTokens": 699,
+          "totalTokens": 1239
+        },
+        "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+        "parsedOk": true,
+        "promptTokensEst": 499
+      },
+      "postSuccess": true
+    },
+    {
+      "cooldownMs": 3000,
+      "pre": {
+        "ok": true,
+        "httpStatus": 200,
+        "elapsed": 4367,
+        "label": "pre_cd_3000ms",
+        "usage": {
+          "promptTokens": 540,
+          "completionTokens": 633,
+          "totalTokens": 1173
+        },
+        "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+        "parsedOk": true,
+        "promptTokensEst": 499
+      },
+      "post": {
+        "ok": true,
+        "httpStatus": 200,
+        "elapsed": 4870,
+        "label": "post_cd_3000ms",
+        "usage": {
+          "promptTokens": 540,
+          "completionTokens": 626,
+          "totalTokens": 1166
+        },
+        "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+        "parsedOk": true,
+        "promptTokensEst": 499
+      },
+      "postSuccess": true
+    },
+    {
+      "cooldownMs": 5000,
+      "pre": {
+        "ok": true,
+        "httpStatus": 200,
+        "elapsed": 3697,
+        "label": "pre_cd_5000ms",
+        "usage": {
+          "promptTokens": 540,
+          "completionTokens": 587,
+          "totalTokens": 1127
+        },
+        "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+        "parsedOk": true,
+        "promptTokensEst": 499
+      },
+      "post": {
+        "ok": true,
+        "httpStatus": 200,
+        "elapsed": 4629,
+        "label": "post_cd_5000ms",
+        "usage": {
+          "promptTokens": 540,
+          "completionTokens": 745,
+          "totalTokens": 1285
+        },
+        "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+        "parsedOk": true,
+        "promptTokensEst": 499
+      },
+      "postSuccess": true
+    },
+    {
+      "cooldownMs": 8000,
+      "pre": {
+        "ok": true,
+        "httpStatus": 200,
+        "elapsed": 4258,
+        "label": "pre_cd_8000ms",
+        "usage": {
+          "promptTokens": 540,
+          "completionTokens": 649,
+          "totalTokens": 1189
+        },
+        "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+        "parsedOk": true,
+        "promptTokensEst": 499
+      },
+      "post": {
+        "ok": true,
+        "httpStatus": 200,
+        "elapsed": 4318,
+        "label": "post_cd_8000ms",
+        "usage": {
+          "promptTokens": 540,
+          "completionTokens": 531,
+          "totalTokens": 1071
+        },
+        "answer": "{\n  \"answers\": [\n    {\n      \"blockIndex\": 0,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Test User\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 1,\n      \"actions\": [\n        {\n          \"type\": \"MULTIPLE_CHOICE\",\n          \"value\": \"3rd Year\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 2,\n      \"actions\": [\n        {\n          \"type\": \"DROPDOWN\",\n          \"value\": \"CS\"\n        }\n      ]\n    },\n    {\n      \"blockIndex\": 3,\n      \"actions\": [\n        {\n          \"type\": \"TEXT_INPUT\",\n          \"value\": \"Not Provided\"\n        }\n      ]\n    }\n  ]\n}",
+        "parsedOk": true,
+        "promptTokensEst": 499
+      },
+      "postSuccess": true
+    }
+  ],
+  "timestamp": "2026-06-03T11:58:43.519Z"
+}

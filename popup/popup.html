@@ -1,73 +1,175 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>FormAI | Neo-Brutalist</title>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  
+  <!-- Custom CSS -->
   <link rel="stylesheet" href="popup.css">
 </head>
-<body>
-  <div class="container">
+<body class="bg-background text-primary font-body flex items-center justify-center min-h-screen p-0 m-0">
+  
+  <!-- Widget Container -->
+  <div class="w-[420px] bg-background border-4 border-primary flex flex-col overflow-hidden h-[600px]">
     
-    <div class="header">
-      <div class="logo"><span>✨</span> FormAI</div>
-      <button id="toggle-settings-btn" class="icon-btn" title="Settings">⚙️</button>
-    </div>
+    <!-- TopAppBar -->
+    <header class="flex justify-between items-center w-full px-5 py-3 bg-background border-b-4 border-primary shrink-0">
+      <div class="font-headline font-black uppercase text-2xl tracking-tighter text-primary">
+        FORMAI
+      </div>
+      <div class="flex items-center gap-4">
+        <button id="toggle-settings-btn" class="text-primary border-2 border-primary px-3 py-1 font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
+          <span class="material-symbols-outlined btn-icon" style="font-size:16px;">settings</span>
+          <span class="btn-label">Settings</span>
+        </button>
+        <span id="auth-btn" class="material-symbols-outlined text-3xl cursor-pointer hover:scale-110 transition-transform" data-icon="account_circle">account_circle</span>
+      </div>
+    </header>
     
-    <div id="settings-area" class="glass-panel" style="display: none;">
-      <div class="input-group">
-        <label>LLM Providers (Drag to set Priority 🎉)</label>
-        <div id="provider-list" style="display: flex; flex-direction: column; gap: 8px;">
-          <!-- Dynamically filled by JS -->
+    <!-- Main Content Area -->
+    <main class="relative flex-grow overflow-hidden flex flex-col">
+      
+      <!-- ══════════════════════════════════════════ -->
+      <!-- View: Solve (Main) -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="view-pane flex flex-col h-full" id="view-solve">
+
+        <!-- Status Bar (always at top) -->
+        <div class="grid grid-cols-2 border-b-4 border-primary shrink-0">
+          <div class="border-r-2 border-primary p-3 bg-secondary-container" id="ai-response-area">
+            <p class="text-[9px] font-black uppercase mb-1 opacity-60">Status</p>
+            <div class="flex items-center gap-2">
+              <span id="status-dot" class="dot idle w-2.5 h-2.5 rounded-full border-2 border-primary bg-primary shrink-0"></span>
+              <p id="status-text" class="font-headline font-bold text-xs uppercase truncate">Ready</p>
+            </div>
+            <p id="provider-badge" class="mt-0.5 text-[9px] font-bold uppercase text-tertiary" style="display: none;"></p>
+            <div id="error-message" class="text-error font-bold text-[9px] mt-0.5 leading-tight" style="display: none;"></div>
+          </div>
+          
+          <div class="p-3 bg-tertiary-container" id="stats-panel">
+            <p class="text-[9px] font-black uppercase mb-1 opacity-60">Detected Fields</p>
+            <p id="stat-fields-val" class="font-headline font-black text-2xl leading-none">0</p>
+          </div>
         </div>
-        <button id="add-provider-btn" class="secondary-btn" style="border-style: dashed; padding: 6px; font-size: 12px; margin-top: 4px;">+ Add Provider Key</button>
+
+        <!-- Progress Bar -->
+        <div class="w-full h-2 bg-surface-variant border-b-2 border-primary shrink-0 overflow-hidden">
+          <div id="progress-bar" class="h-full transition-all duration-300 ease-linear striped-bar" style="width: 0%; background-image: repeating-linear-gradient(-45deg, #000, #000 10px, #FDE047 10px, #FDE047 20px);"></div>
+        </div>
+        
+        <!-- Scrollable Content -->
+        <div class="flex-grow overflow-y-auto p-5 space-y-4">
+
+          <!-- Prompt Section -->
+          <div>
+            <h2 class="font-display font-black text-xl uppercase tracking-tighter mb-2 flex items-center gap-2">
+              <span class="material-symbols-outlined" style="font-size:18px;">edit_note</span>
+              Prompt
+            </h2>
+            <textarea id="chat-input" class="w-full h-24 p-3 bau-texture border-4 border-primary focus:outline-none focus:ring-0 resize-none font-headline font-bold text-sm placeholder:text-primary/40" placeholder="Optional: add context like 'This is a blood donation form'  (keeping blank is also fine)"></textarea>
+          </div>
+          
+          <!-- Missing Context Handling -->
+          <div class="space-y-2">
+            <h3 class="font-display font-black text-[10px] uppercase tracking-tighter border-b-2 border-primary pb-1 flex items-center gap-1">
+              <span class="material-symbols-outlined" style="font-size:12px;">help_outline</span>
+              Missing Context Handling
+            </h3>
+            <p class="text-[11px] font-bold leading-tight uppercase opacity-70">What if the asked question is personal and not in context?</p>
+            <div id="missing-context-group" class="grid grid-cols-3 border-2 border-primary bg-primary overflow-hidden">
+                <button data-value="print_not_provided" class="context-btn bg-primary-fixed text-primary px-1 py-2 text-[10px] font-black uppercase border-r-2 border-primary leading-tight tracking-wider">Print<br>"Not Provided"</button>
+                <button data-value="ai_generated" class="context-btn bg-background text-primary px-1 py-2 text-[10px] font-black uppercase border-r-2 border-primary hover:bg-surface-variant leading-tight tracking-wider">AI<br>Generated</button>
+                <button data-value="blank" class="context-btn bg-background text-primary px-1 py-2 text-[10px] font-black uppercase hover:bg-surface-variant leading-tight tracking-wider">Leave<br>Blank</button>
+            </div>
+          </div>
+          
+        </div>
+
+        <!-- SOLVE Button (pinned to bottom) -->
+        <div class="shrink-0 p-4 border-t-4 border-primary bg-background">
+          <button id="solve-btn" class="w-full bg-primary-container text-primary font-display font-black text-2xl py-3 border-4 border-primary neo-shadow hover:bg-primary hover:text-primary-fixed transition-all active:translate-x-1 active:translate-y-1 active:shadow-[1px_1px_0px_0px_#1a1a1a] uppercase tracking-widest">
+            SOLVE
+          </button>
+        </div>
+
       </div>
       
-      <div class="input-group">
-        <label for="profile-input">Personal Profile (Bio for Context)</label>
-        <textarea id="profile-input" class="input-block" placeholder="Email: user@example.com, Roll No: 12..." rows="3" style="resize:none;"></textarea>
+      <!-- ══════════════════════════════════════════ -->
+      <!-- View: Settings -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="view-pane hidden-pane flex flex-col h-full" id="view-settings">
+
+        <!-- Settings Header (sticky) -->
+        <div class="px-5 py-3 border-b-4 border-primary bg-background shrink-0">
+          <h2 class="font-display font-black text-2xl uppercase tracking-tighter">Configuration</h2>
+          <p class="text-[9px] font-bold uppercase opacity-50">API keys & profile context</p>
+        </div>
+
+        <!-- Settings Scrollable Body -->
+        <div class="flex-grow overflow-y-auto p-5 space-y-4">
+          
+          <!-- Yellow API + Profile block -->
+          <div class="bg-primary-container border-4 border-primary neo-shadow p-4 space-y-4">
+            <div>
+              <label class="block font-black uppercase text-xs flex items-center gap-1 mb-0.5">
+                <span class="material-symbols-outlined" style="font-size:14px;">api</span>
+                LLM Providers
+                <span class="opacity-50 font-normal text-[9px] ml-1">(drag to set priority)</span>
+              </label>
+              <p class="text-[9px] font-bold text-tertiary mb-3 uppercase leading-tight">★ Groq keys are preferred for speed! Get yours free at <a href="https://console.groq.com/keys" target="_blank" class="underline hover:text-primary inline-flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:10px;">open_in_new</span>console.groq.com/keys</a></p>
+              <div id="provider-list" class="space-y-2">
+                <!-- Dynamically filled by JS -->
+              </div>
+              <button id="add-provider-btn" class="w-full mt-2 border-2 border-primary border-dashed p-2 font-headline font-bold uppercase bg-background hover:bg-surface-variant transition-all text-xs flex items-center justify-center gap-1">
+                <span class="material-symbols-outlined" style="font-size:14px;">add_circle</span>
+                Add Provider
+              </button>
+            </div>
+            
+            <div>
+              <label class="block font-black uppercase text-xs mb-2 flex items-center gap-1">
+                <span class="material-symbols-outlined" style="font-size:14px;">person</span>
+                Personal Profile
+              </label>
+              <textarea id="profile-input" class="w-full h-28 p-2 border-4 border-primary bg-background focus:outline-none font-mono text-xs resize-none leading-relaxed" placeholder="Email: user@example.com&#10;Roll No: 12&#10;Name: Jane Doe&#10;Year: 3rd"></textarea>
+              <p class="text-[9px] opacity-50 font-bold uppercase mt-1">One field per line. AI will match these to form fields automatically.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Save Button (always visible, pinned to bottom) -->
+        <div class="shrink-0 p-4 border-t-4 border-primary bg-background">
+          <button id="save-key-btn" class="w-full border-4 border-primary p-3 font-headline font-black text-lg uppercase bg-primary text-background hover:bg-secondary hover:border-secondary transition-all neo-shadow active:translate-x-1 active:translate-y-1 active:shadow-[1px_1px_0px_0px_#1a1a1a] flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined" style="font-size:20px;">save</span>
+            Save &amp; Return
+          </button>
+        </div>
+
       </div>
-
-      <button id="save-key-btn" class="secondary-btn">Save Configurations</button>
-    </div>
-
-    <div id="main-area">
       
-      <!-- Stats Panel appearing after extraction -->
-      <div id="stats-panel" class="glass-panel">
-        <div class="stat-row">
-          <span>Detected Fields</span>
-          <span id="stat-fields-val" class="stat-val">0</span>
-        </div>
+    </main>
+    
+    <!-- Footer Meta -->
+    <footer class="px-5 py-1.5 border-t-2 border-primary bg-surface-container flex justify-between items-center shrink-0">
+      <span class="text-[9px] font-black uppercase opacity-40">FormAI Neo-Brutalist v2</span>
+      <div class="flex gap-1.5">
+        <div class="w-2 h-2 bg-secondary border border-primary"></div>
+        <div class="w-2 h-2 bg-primary-fixed border border-primary"></div>
+        <div class="w-2 h-2 bg-tertiary border border-primary"></div>
       </div>
-
-      <div id="ai-response-area" class="glass-panel">
-        <div class="status-container">
-          <span id="status-dot" class="dot idle"></span>
-          <span id="status-text" style="font-weight: 500;">Ready</span>
-          <span id="provider-badge" style="display: none; margin-left: auto; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(124, 92, 255, 0.2); border: 1px solid var(--primary); color: var(--primary);">OpenAI</span>
-        </div>
-        <div id="error-message" style="color: var(--error); font-size: 12px; margin-top: 8px; display: none;"></div>
-      </div>
-
-      <!-- Telemetry Actions Panel -->
-      <div id="telemetry-panel" class="glass-panel" style="margin-top: 8px; padding: 10px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-        <span style="color: var(--text-muted); font-weight: 500;">Telemetry Logs</span>
-        <div style="display: flex; gap: 6px;">
-          <button id="download-logs-btn" class="secondary-btn" style="padding: 5px 10px; font-size: 11px; margin: 0; line-height: 1;">📥 Download</button>
-          <button id="clear-logs-btn" class="secondary-btn" style="padding: 5px 10px; font-size: 11px; margin: 0; line-height: 1; color: var(--error); border-color: rgba(239, 68, 68, 0.3);">🗑️ Clear</button>
-        </div>
-      </div>
-
-      <!-- Command / Ask Input Region -->
-      <div class="action-bar">
-        <div class="chat-box">
-          <textarea id="chat-input" placeholder="Ask anything... or paste questions"></textarea>
-        </div>
-        <button id="solve-btn" class="primary-btn">Solve Form ✨</button>
-      </div>
-
-    </div>
-
+    </footer>
+    
   </div>
+
   <script src="popup.js"></script>
 </body>
 </html>

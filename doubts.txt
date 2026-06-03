@@ -1,0 +1,3 @@
+1.how will it handle if the user provides some api keys and the tokens are exhausted?
+2.how will it handle if api key is expired
+3.how will it handle if the key is invalid
