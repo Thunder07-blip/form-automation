@@ -509,8 +509,8 @@ async function handleSolveForm(blocks, tempInstruction, tabId) {
   }
   isSolving = true;
   brokenProviders = {}; // Reset broken providers list for this new run
-
-  const solveStartTime = Date.now();
+  const solveStartTimeMs = Date.now();
+  const solveStartTimeIso = new Date().toISOString();
 
   try {
     await updateSolverStatus("solving", "Initializing...", { blocksCount: blocks?.length || 0 });
@@ -880,30 +880,14 @@ Example Output:
           if (fillResponse?.status === "success") {
             await writeLog("Completion", `Injected answers into tab successfully. Warning: ${warning || "None"}`);
             await updateSolverStatus(statusClass, statusMsg, { providerUsed, warning, answers: allAnswers, active: false });
-            
-            // Track Usage
-            try {
-              const { user } = await chrome.storage.local.get('user');
-              if (user && user.email && check.totalCount > 0) {
-                await fetch('https://form-automation-eight.vercel.app/api/usage', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    email: user.email,
-                    time_taken_seconds: Math.round((Date.now() - solveStartTime) / 1000),
-                    questions_detected: check.totalCount,
-                    questions_filled: check.totalCount - check.emptyCount,
-                    success: !check.allEmpty
-                  })
-                });
-              }
-            } catch (e) {
-              console.error('Failed to log usage:', e);
-            }
           } else {
             await writeLog("Error", `Failed to apply answers to the form: ${fillResponse?.message || "No response"}`);
             await updateSolverStatus("error", "Failed to apply answers to the form.", { active: false });
           }
+
+          // --- Telemetry Logging ---
+          await logTelemetryToDB(solveStartTimeIso, solveStartTimeMs, check.totalCount, check.totalCount - check.emptyCount, warning || (fillResponse?.status === "success" ? null : "Failed to apply answers"));
+
           isSolving = false;
       });
     } else {
@@ -914,7 +898,34 @@ Example Output:
     await writeLog("Fatal Error", `Uncaught exception in background: ${error.message}`);
     debugError("Engine", "FATAL:", error);
     await updateSolverStatus("error", `Fatal Error: ${error.message}`, { active: false });
+    
+    // --- Telemetry Logging (Error Path) ---
+    await logTelemetryToDB(solveStartTimeIso, solveStartTimeMs, 0, 0, `Fatal Error: ${error.message}`);
+    
     isSolving = false;
+  }
+}
+
+async function logTelemetryToDB(startIso, startMs, totalFields, filledFields, errorMsg) {
+  try {
+    const { formAI_user_id } = await chrome.storage.local.get(["formAI_user_id"]);
+    if (!formAI_user_id) return; // Silent skip if no user ID
+
+    await fetch("https://form-automation-eight.vercel.app/api/log_usage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: formAI_user_id,
+        start_time: startIso,
+        end_time: new Date().toISOString(),
+        duration_ms: Date.now() - startMs,
+        total_fields: totalFields,
+        filled_fields: filledFields,
+        error_message: errorMsg
+      })
+    });
+  } catch (e) {
+    console.error("Telemetry failed:", e);
   }
 }
 

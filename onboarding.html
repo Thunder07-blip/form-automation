@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to FormAI</title>
+  <link rel="stylesheet" href="ui/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <style>
+    body {
+      background-color: #f5f0e8;
+      background-image: radial-gradient(#1a1a1a 0.5px, transparent 0.5px);
+      background-size: 10px 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .neo-shadow { box-shadow: 6px 6px 0px 0px #1a1a1a; }
+    .neo-shadow-btn { box-shadow: 4px 4px 0px 0px #1a1a1a; transition: all 0.1s; }
+    .neo-shadow-btn:active { box-shadow: 0px 0px 0px 0px #1a1a1a; transform: translate(4px, 4px); }
+    h1 { font-family: 'Outfit', sans-serif; }
+  </style>
+</head>
+<body>
+
+  <div class="bg-background border-4 border-primary neo-shadow p-8 w-full max-w-md m-4">
+    <div class="text-center mb-6">
+      <span class="material-symbols-outlined text-5xl mb-2">rocket_launch</span>
+      <h1 class="text-4xl font-black uppercase tracking-tighter leading-none">Welcome to FormAI</h1>
+      <p class="text-xs font-bold uppercase text-tertiary mt-2">Just a quick setup before we start automating.</p>
+    </div>
+
+    <form id="onboard-form" class="space-y-4">
+      <div>
+        <label class="block font-black uppercase text-xs mb-1">Full Name</label>
+        <input type="text" id="name" required class="w-full p-3 border-4 border-primary font-bold text-sm focus:outline-none focus:bg-primary-container transition-colors placeholder:text-primary/30" placeholder="John Doe">
+      </div>
+      
+      <div>
+        <label class="block font-black uppercase text-xs mb-1">Email</label>
+        <input type="email" id="email" required class="w-full p-3 border-4 border-primary font-bold text-sm focus:outline-none focus:bg-primary-container transition-colors placeholder:text-primary/30" placeholder="john@example.com">
+      </div>
+
+      <div>
+        <label class="block font-black uppercase text-xs mb-1">College/University</label>
+        <input type="text" id="college" required class="w-full p-3 border-4 border-primary font-bold text-sm focus:outline-none focus:bg-primary-container transition-colors placeholder:text-primary/30" placeholder="Your College">
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-black uppercase text-xs mb-1">Branch/Major</label>
+          <input type="text" id="branch" required class="w-full p-3 border-4 border-primary font-bold text-sm focus:outline-none focus:bg-primary-container transition-colors placeholder:text-primary/30" placeholder="Computer Science">
+        </div>
+        
+        <div>
+          <label class="block font-black uppercase text-xs mb-1">Year</label>
+          <select id="year" required class="w-full p-3 border-4 border-primary font-bold text-sm focus:outline-none focus:bg-primary-container transition-colors bg-white appearance-none cursor-pointer">
+            <option value="" disabled selected>Select Year</option>
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="error-msg" class="hidden bg-error text-white font-bold text-xs p-2 uppercase text-center border-2 border-primary"></div>
+
+      <button type="submit" id="submit-btn" class="w-full bg-primary-container text-primary font-black text-xl uppercase py-4 border-4 border-primary neo-shadow-btn mt-6 flex items-center justify-center gap-2">
+        Let's Go! <span class="material-symbols-outlined">arrow_forward</span>
+      </button>
+    </form>
+  </div>
+
+  <script src="onboarding.js"></script>
+</body>
+</html>
