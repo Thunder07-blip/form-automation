@@ -486,12 +486,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         googleLoginBtn.addEventListener('click', () => {
             googleLoginBtn.innerHTML = 'Loading...';
             googleLoginBtn.disabled = true;
+            const errorText = document.getElementById('login-error-text');
+            if (errorText) errorText.style.display = 'none';
 
             chrome.identity.getAuthToken({ interactive: true }, async function(token) {
                 if (chrome.runtime.lastError || !token) {
                     console.error("Auth Error:", chrome.runtime.lastError);
-                    googleLoginBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" alt="Google"> Continue with Google';
+                    googleLoginBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width: 24px; height: 24px;" alt="Google"> Continue with Google';
                     googleLoginBtn.disabled = false;
+                    if (errorText) {
+                        errorText.textContent = "Google Login Blocked: " + (chrome.runtime.lastError?.message || "Unknown error. Check extension ID in Google Cloud.");
+                        errorText.style.display = 'block';
+                    }
                     return;
                 }
                 
