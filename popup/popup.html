@@ -54,6 +54,55 @@
       </div>
 
       <!-- ══════════════════════════════════════════ -->
+      <!-- View: Onboarding -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="view-pane flex flex-col h-full p-5 overflow-y-auto" id="view-onboarding" style="display: none;">
+        <div class="mb-4 border-b-4 border-primary pb-3 shrink-0">
+          <h1 class="text-xl font-black uppercase tracking-tighter">Complete Profile</h1>
+          <p class="text-[10px] font-bold opacity-80 uppercase">Just a few more details.</p>
+        </div>
+        <div id="onboarding-error" class="bg-[#ff3333] border-4 border-primary p-2 mb-4 neo-shadow text-white font-bold text-[10px] shrink-0" style="display: none;">
+          Please fill in all required fields.
+        </div>
+        <form id="onboarding-form" class="space-y-3 flex-grow pb-4">
+          <div class="bg-primary-container border-4 border-primary p-2 neo-shadow">
+            <label class="block font-black uppercase text-[10px] mb-1">Full Name</label>
+            <input type="text" id="ob-name" class="w-full border-2 border-primary bg-background p-1.5 text-xs font-bold focus:outline-none" required>
+          </div>
+          <div class="bg-primary-container border-4 border-primary p-2 neo-shadow">
+            <label class="block font-black uppercase text-[10px] mb-1">Gender</label>
+            <select id="ob-gender" class="w-full border-2 border-primary bg-background p-1.5 text-xs font-bold focus:outline-none" required>
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+              <option value="Prefer not to say">Prefer not to say</option>
+            </select>
+          </div>
+          <div class="bg-primary-container border-4 border-primary p-2 neo-shadow">
+            <label class="block font-black uppercase text-[10px] mb-1">College</label>
+            <input type="text" id="ob-college" class="w-full border-2 border-primary bg-background p-1.5 text-xs font-bold focus:outline-none" required>
+          </div>
+          <div class="bg-primary-container border-4 border-primary p-2 neo-shadow">
+            <label class="block font-black uppercase text-[10px] mb-1">Branch</label>
+            <input type="text" id="ob-branch" class="w-full border-2 border-primary bg-background p-1.5 text-xs font-bold focus:outline-none" required>
+          </div>
+          <div class="bg-primary-container border-4 border-primary p-2 neo-shadow">
+            <label class="block font-black uppercase text-[10px] mb-1">Year</label>
+            <select id="ob-year" class="w-full border-2 border-primary bg-background p-1.5 text-xs font-bold focus:outline-none" required>
+              <option value="">Select Year</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+              <option value="5">5th Year+</option>
+            </select>
+          </div>
+          <button type="submit" id="ob-submit-btn" class="w-full bg-secondary text-primary font-black uppercase p-3 border-4 border-primary neo-shadow hover:translate-y-0.5 hover:translate-x-0.5 hover:shadow-[2px_2px_0px_0px_#1a1a1a] mt-2 text-sm transition-all">Save & Continue</button>
+        </form>
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
       <!-- View: Solve (Main) -->
       <!-- ══════════════════════════════════════════ -->
       <div class="view-pane flex flex-col h-full" id="view-solve" style="display: none;">
@@ -83,6 +132,22 @@
         
         <!-- Scrollable Content -->
         <div class="flex-grow overflow-y-auto p-5 space-y-4">
+
+          <!-- Dashboard Stats -->
+          <div class="grid grid-cols-3 gap-2 border-4 border-primary p-2 bg-primary-container neo-shadow">
+            <div class="text-center border-r-2 border-primary pr-2">
+              <p class="text-[8px] font-black uppercase opacity-70">Forms Done</p>
+              <p class="text-xl font-black" id="dash-forms">-</p>
+            </div>
+            <div class="text-center border-r-2 border-primary pr-2">
+              <p class="text-[8px] font-black uppercase opacity-70">Qs Solved</p>
+              <p class="text-xl font-black" id="dash-questions">-</p>
+            </div>
+            <div class="text-center">
+              <p class="text-[8px] font-black uppercase opacity-70">Avg Qs/Form</p>
+              <p class="text-xl font-black" id="dash-avg-qs">-</p>
+            </div>
+          </div>
 
           <!-- Prompt Section -->
           <div>

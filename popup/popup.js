@@ -448,36 +448,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Check if user is already logged in
     const { user, requires_onboarding } = await chrome.storage.local.get(['user', 'requires_onboarding']);
     
-    if (user && user.email) {
-        if (requires_onboarding) {
-            window.location.href = '../ui/onboarding.html';
-            return;
-        }
-        // User is fully authenticated, show the main UI
+    const viewOnboarding = document.getElementById('view-onboarding');
+
+    function showView(viewId) {
         viewLogin.style.display = 'none';
-        viewSolve.style.display = 'flex';
-        
-        // Show account icon and settings button
-        if (authBtn) {
-            authBtn.style.display = 'block';
-            authBtn.classList.remove('hidden'); // Fallback if present
-        }
-        if (toggleSettingsBtn) {
-            toggleSettingsBtn.style.display = 'flex';
-            toggleSettingsBtn.classList.remove('hidden');
-        }
-    } else {
-        // Not logged in, show login page
-        viewLogin.style.display = 'flex';
+        viewOnboarding.style.display = 'none';
         viewSolve.style.display = 'none';
-        if (authBtn) authBtn.style.display = 'none';
-        if (toggleSettingsBtn) toggleSettingsBtn.style.display = 'none';
+        viewSettings.style.display = 'none';
+        document.getElementById(viewId).style.display = 'flex';
+        
+        // Settings and profile icons visibility
+        if (viewId === 'view-solve') {
+            if (authBtn) {
+                authBtn.style.display = 'block';
+                authBtn.classList.remove('hidden');
+            }
+            if (toggleSettingsBtn) {
+                toggleSettingsBtn.style.display = 'flex';
+                toggleSettingsBtn.classList.remove('hidden');
+            }
+            loadDashboardStats(user.email);
+        } else {
+            if (authBtn) authBtn.style.display = 'none';
+            if (toggleSettingsBtn) toggleSettingsBtn.style.display = 'none';
+        }
     }
 
-    // When the top right profile icon is clicked, go to dashboard
+    if (user && user.email) {
+        if (requires_onboarding) {
+            showView('view-onboarding');
+        } else {
+            showView('view-solve');
+        }
+    } else {
+        showView('view-login');
+    }
+
+    // When the top right profile icon is clicked, sign out
     if (authBtn) {
-        authBtn.addEventListener('click', () => {
-            window.location.href = '../ui/dashboard.html';
+        authBtn.addEventListener('click', async () => {
+            await chrome.storage.local.remove(['user', 'requires_onboarding']);
+            window.location.reload();
         });
     }
 
@@ -522,9 +533,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         await chrome.storage.local.set({ user: userData, requires_onboarding: data.requires_onboarding });
                         
                         if (data.requires_onboarding) {
-                            window.location.href = '../ui/onboarding.html';
+                            showView('view-onboarding');
                         } else {
-                            window.location.href = '../popup/popup.html';
+                            showView('view-solve');
                         }
                     } else {
                         console.error("Backend login failed:", data.error);
@@ -546,6 +557,84 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
         });
+    }
+
+    // Onboarding Form Submit Handler
+    const obForm = document.getElementById('onboarding-form');
+    if (obForm) {
+        obForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('ob-submit-btn');
+            const errorBox = document.getElementById('onboarding-error');
+            const name = document.getElementById('ob-name').value.trim();
+            const gender = document.getElementById('ob-gender').value;
+            const college = document.getElementById('ob-college').value.trim();
+            const branch = document.getElementById('ob-branch').value.trim();
+            const year = document.getElementById('ob-year').value;
+
+            if (!name || !gender || !college || !branch || !year) {
+                errorBox.style.display = 'block';
+                return;
+            }
+            errorBox.style.display = 'none';
+            btn.innerHTML = 'Saving...';
+            btn.disabled = true;
+
+            try {
+                const { user: currentUser } = await chrome.storage.local.get('user');
+                const API_URL = 'https://form-automation-eight.vercel.app/api/onboarding';
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: currentUser.email, name, gender, college, branch, year })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    await chrome.storage.local.set({ 
+                        user: { ...currentUser, name, college, year }, 
+                        requires_onboarding: false 
+                    });
+                    
+                    const newProfile = `Name: ${name}\nEmail: ${currentUser.email}\nGender: ${gender}\nCollege: ${college}\nBranch: ${branch}\nYear: ${year}`;
+                    await chrome.storage.local.set({ userProfile: newProfile });
+                    const profileInput = document.getElementById('profile-input');
+                    if (profileInput) profileInput.value = newProfile;
+                    
+                    showView('view-solve');
+                } else {
+                    errorBox.textContent = data.error || 'Failed to save profile';
+                    errorBox.style.display = 'block';
+                }
+            } catch (err) {
+                errorBox.textContent = 'Network error. Try again.';
+                errorBox.style.display = 'block';
+            } finally {
+                btn.innerHTML = 'Save & Continue';
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // Load Dashboard Stats
+    async function loadDashboardStats(email) {
+        if (!email) return;
+        try {
+            const API_URL = `https://form-automation-eight.vercel.app/api/dashboard?email=${encodeURIComponent(email)}`;
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            
+            if (data.success && data.stats) {
+                const dashForms = document.getElementById('dash-forms');
+                const dashQuestions = document.getElementById('dash-questions');
+                const dashAvgQs = document.getElementById('dash-avg-qs');
+                if (dashForms) dashForms.textContent = data.stats.total_forms;
+                if (dashQuestions) dashQuestions.textContent = data.stats.total_questions;
+                if (dashAvgQs) dashAvgQs.textContent = data.stats.avg_questions_per_form;
+            }
+        } catch (err) {
+            console.error("Dashboard error:", err);
+        }
     }
 });
 
