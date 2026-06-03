@@ -885,7 +885,7 @@ Example Output:
             try {
               const { user } = await chrome.storage.local.get('user');
               if (user && user.email && check.totalCount > 0) {
-                await fetch('http://localhost:3000/api/usage', {
+                await fetch('https://form-automation-bbahvmgvz-spsajalpatil07-9336s-projects.vercel.app/api/usage', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
