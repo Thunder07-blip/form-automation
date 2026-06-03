@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!email) throw new Error('User email not found. Please log in again.');
 
       // In production this will be your Vercel URL
-      const API_URL = 'https://form-automation-bbahvmgvz-spsajalpatil07-9336s-projects.vercel.app/api/onboarding';
+      const API_URL = 'https://form-automation-eight.vercel.app/api/onboarding';
 
       const response = await fetch(API_URL, {
         method: 'POST',

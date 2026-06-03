@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // In production this will be your Vercel URL
-  const API_URL = `https://form-automation-bbahvmgvz-spsajalpatil07-9336s-projects.vercel.app/api/dashboard?email=${encodeURIComponent(user.email)}`;
+  const API_URL = `https://form-automation-eight.vercel.app/api/dashboard?email=${encodeURIComponent(user.email)}`;
 
   try {
     const response = await fetch(API_URL);
