@@ -454,18 +454,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         // User is fully authenticated, show the main UI
-        viewLogin.classList.add('hidden');
-        viewSolve.classList.remove('hidden');
+        viewLogin.style.display = 'none';
+        viewSolve.style.display = 'flex';
         
         // Show account icon and settings button
-        if (authBtn) authBtn.classList.remove('hidden');
-        if (toggleSettingsBtn) toggleSettingsBtn.classList.remove('hidden');
+        if (authBtn) {
+            authBtn.style.display = 'block';
+            authBtn.classList.remove('hidden'); // Fallback if present
+        }
+        if (toggleSettingsBtn) {
+            toggleSettingsBtn.style.display = 'flex';
+            toggleSettingsBtn.classList.remove('hidden');
+        }
     } else {
         // Not logged in, show login page
-        viewLogin.classList.remove('hidden');
-        viewSolve.classList.add('hidden');
-        if (authBtn) authBtn.classList.add('hidden');
-        if (toggleSettingsBtn) toggleSettingsBtn.classList.add('hidden');
+        viewLogin.style.display = 'flex';
+        viewSolve.style.display = 'none';
+        if (authBtn) authBtn.style.display = 'none';
+        if (toggleSettingsBtn) toggleSettingsBtn.style.display = 'none';
     }
 
     // When the top right profile icon is clicked, go to dashboard

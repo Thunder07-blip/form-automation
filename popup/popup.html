@@ -40,14 +40,14 @@
       <!-- ══════════════════════════════════════════ -->
       <!-- View: Login -->
       <!-- ══════════════════════════════════════════ -->
-      <div class="view-pane flex flex-col h-full justify-center items-center p-6 text-center space-y-6" id="view-login">
+      <div class="view-pane flex flex-col h-full justify-center items-center p-6 text-center space-y-6" id="view-login" style="display: flex;">
         <div class="space-y-2">
-          <span class="material-symbols-outlined text-6xl text-primary">auto_awesome</span>
+          <span class="material-symbols-outlined text-primary" style="font-size: 60px;">auto_awesome</span>
           <h1 class="text-2xl font-black uppercase tracking-tighter">Welcome to FormAI</h1>
           <p class="text-xs font-bold opacity-80 uppercase">Sign in to automate your forms.</p>
         </div>
-        <button id="google-login-btn" class="w-full max-w-[280px] bg-background text-primary font-black uppercase p-3 flex items-center justify-center gap-2 border-4 border-primary neo-shadow hover:bg-secondary transition-colors active:translate-y-0.5 active:translate-x-0.5 active:shadow-[2px_2px_0px_0px_#1a1a1a]">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4" alt="Google">
+        <button id="google-login-btn" class="w-full bg-background text-primary font-black uppercase p-3 flex items-center justify-center gap-2 border-4 border-primary neo-shadow hover:bg-secondary transition-colors active:translate-y-0.5 active:translate-x-0.5 active:shadow-[2px_2px_0px_0px_#1a1a1a]" style="max-width: 280px;">
+          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width: 24px; height: 24px;" alt="Google">
           Continue with Google
         </button>
       </div>
@@ -55,7 +55,7 @@
       <!-- ══════════════════════════════════════════ -->
       <!-- View: Solve (Main) -->
       <!-- ══════════════════════════════════════════ -->
-      <div class="view-pane flex flex-col h-full hidden" id="view-solve">
+      <div class="view-pane flex flex-col h-full" id="view-solve" style="display: none;">
 
         <!-- Status Bar (always at top) -->
         <div class="grid grid-cols-2 border-b-4 border-primary shrink-0">
