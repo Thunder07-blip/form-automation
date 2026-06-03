@@ -26,11 +26,11 @@
         FORMAI
       </div>
       <div class="flex items-center gap-4">
-        <button id="toggle-settings-btn" class="text-primary border-2 border-primary px-3 py-1 font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hidden">
+        <button id="toggle-settings-btn" class="text-primary border-2 border-primary px-3 py-1 font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
           <span class="material-symbols-outlined btn-icon" style="font-size:16px;">settings</span>
           <span class="btn-label">Settings</span>
         </button>
-        <span id="auth-btn" class="material-symbols-outlined text-3xl cursor-pointer hover:scale-110 transition-transform hidden" data-icon="account_circle">account_circle</span>
+        <span class="material-symbols-outlined text-3xl cursor-pointer hover:scale-110 transition-transform" data-icon="account_circle">account_circle</span>
       </div>
     </header>
     
@@ -38,74 +38,9 @@
     <main class="relative flex-grow overflow-hidden flex flex-col">
       
       <!-- ══════════════════════════════════════════ -->
-      <!-- View: Login -->
-      <!-- ══════════════════════════════════════════ -->
-      <div class="view-pane flex flex-col h-full justify-center items-center p-6 text-center space-y-6" id="view-login" style="display: flex;">
-        <div class="space-y-2">
-          <span class="material-symbols-outlined text-primary" style="font-size: 60px;">auto_awesome</span>
-          <h1 class="text-2xl font-black uppercase tracking-tighter">Welcome to FormAI</h1>
-          <p class="text-xs font-bold opacity-80 uppercase">Sign in to automate your forms.</p>
-        </div>
-        <button id="google-login-btn" class="w-full bg-background text-primary font-black uppercase p-3 flex items-center justify-center gap-2 border-4 border-primary neo-shadow hover:bg-secondary transition-colors active:translate-y-0.5 active:translate-x-0.5 active:shadow-[2px_2px_0px_0px_#1a1a1a]" style="max-width: 280px;">
-          <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width: 24px; height: 24px;" alt="Google">
-          Continue with Google
-        </button>
-        <p id="login-error-text" class="text-[10px] font-bold text-[#ff3333] mt-2 max-w-[280px]" style="display: none;"></p>
-      </div>
-
-      <!-- ══════════════════════════════════════════ -->
-      <!-- View: Onboarding -->
-      <!-- ══════════════════════════════════════════ -->
-      <div class="view-pane flex flex-col h-full p-5 overflow-y-auto" id="view-onboarding" style="display: none;">
-        <div class="mb-4 border-b-4 border-primary pb-3 shrink-0">
-          <h1 class="text-xl font-black uppercase tracking-tighter">Complete Profile</h1>
-          <p class="text-[10px] font-bold opacity-80 uppercase">Just a few more details.</p>
-        </div>
-        <div id="onboarding-error" class="bg-[#ff3333] border-4 border-primary p-2 mb-4 neo-shadow text-white font-bold text-[10px] shrink-0" style="display: none;">
-          Please fill in all required fields.
-        </div>
-        <form id="onboarding-form" class="space-y-3 flex-grow pb-4">
-          <div class="bg-primary-container border-4 border-primary p-2 neo-shadow">
-            <label class="block font-black uppercase text-[10px] mb-1">Full Name</label>
-            <input type="text" id="ob-name" class="w-full border-2 border-primary bg-background p-1.5 text-xs font-bold focus:outline-none" required>
-          </div>
-          <div class="bg-primary-container border-4 border-primary p-2 neo-shadow">
-            <label class="block font-black uppercase text-[10px] mb-1">Gender</label>
-            <select id="ob-gender" class="w-full border-2 border-primary bg-background p-1.5 text-xs font-bold focus:outline-none" required>
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-              <option value="Prefer not to say">Prefer not to say</option>
-            </select>
-          </div>
-          <div class="bg-primary-container border-4 border-primary p-2 neo-shadow">
-            <label class="block font-black uppercase text-[10px] mb-1">College</label>
-            <input type="text" id="ob-college" class="w-full border-2 border-primary bg-background p-1.5 text-xs font-bold focus:outline-none" required>
-          </div>
-          <div class="bg-primary-container border-4 border-primary p-2 neo-shadow">
-            <label class="block font-black uppercase text-[10px] mb-1">Branch</label>
-            <input type="text" id="ob-branch" class="w-full border-2 border-primary bg-background p-1.5 text-xs font-bold focus:outline-none" required>
-          </div>
-          <div class="bg-primary-container border-4 border-primary p-2 neo-shadow">
-            <label class="block font-black uppercase text-[10px] mb-1">Year</label>
-            <select id="ob-year" class="w-full border-2 border-primary bg-background p-1.5 text-xs font-bold focus:outline-none" required>
-              <option value="">Select Year</option>
-              <option value="1">1st Year</option>
-              <option value="2">2nd Year</option>
-              <option value="3">3rd Year</option>
-              <option value="4">4th Year</option>
-              <option value="5">5th Year+</option>
-            </select>
-          </div>
-          <button type="submit" id="ob-submit-btn" class="w-full bg-secondary text-primary font-black uppercase p-3 border-4 border-primary neo-shadow hover:translate-y-0.5 hover:translate-x-0.5 hover:shadow-[2px_2px_0px_0px_#1a1a1a] mt-2 text-sm transition-all">Save & Continue</button>
-        </form>
-      </div>
-
-      <!-- ══════════════════════════════════════════ -->
       <!-- View: Solve (Main) -->
       <!-- ══════════════════════════════════════════ -->
-      <div class="view-pane flex flex-col h-full" id="view-solve" style="display: none;">
+      <div class="view-pane flex flex-col h-full" id="view-solve">
 
         <!-- Status Bar (always at top) -->
         <div class="grid grid-cols-2 border-b-4 border-primary shrink-0">
@@ -132,22 +67,6 @@
         
         <!-- Scrollable Content -->
         <div class="flex-grow overflow-y-auto p-5 space-y-4">
-
-          <!-- Dashboard Stats -->
-          <div class="grid grid-cols-3 gap-2 border-4 border-primary p-2 bg-primary-container neo-shadow">
-            <div class="text-center border-r-2 border-primary pr-2">
-              <p class="text-[8px] font-black uppercase opacity-70">Forms Done</p>
-              <p class="text-xl font-black" id="dash-forms">-</p>
-            </div>
-            <div class="text-center border-r-2 border-primary pr-2">
-              <p class="text-[8px] font-black uppercase opacity-70">Qs Solved</p>
-              <p class="text-xl font-black" id="dash-questions">-</p>
-            </div>
-            <div class="text-center">
-              <p class="text-[8px] font-black uppercase opacity-70">Avg Qs/Form</p>
-              <p class="text-xl font-black" id="dash-avg-qs">-</p>
-            </div>
-          </div>
 
           <!-- Prompt Section -->
           <div>
@@ -237,6 +156,89 @@
 
       </div>
       
+      <!-- ═════════════════════════════════════════= -->
+      <!-- View: Onboarding -->
+      <!-- ═════════════════════════════════════════= -->
+      <div class="view-pane hidden-pane flex flex-col h-full" id="view-onboard">
+
+        <!-- Onboarding Header -->
+        <div class="px-5 py-3 border-b-4 border-primary bg-primary-container shrink-0">
+          <h2 class="font-display font-black text-2xl uppercase tracking-tighter flex items-center gap-2">
+            <span class="material-symbols-outlined" style="font-size:22px;">rocket_launch</span>
+            Quick Setup
+          </h2>
+          <p class="text-[9px] font-bold uppercase opacity-60">One-time setup — free to use after this!</p>
+        </div>
+
+        <!-- Onboarding Scrollable Body -->
+        <div class="flex-grow overflow-y-auto p-4 space-y-3">
+
+          <div class="bg-primary-container border-4 border-primary neo-shadow p-4 space-y-3">
+
+            <!-- Name -->
+            <div>
+              <label class="block font-black uppercase text-[10px] mb-1 flex items-center gap-1">
+                <span class="material-symbols-outlined" style="font-size:12px;">badge</span> Full Name
+              </label>
+              <input type="text" id="ob-name" class="w-full p-2.5 border-4 border-primary bg-background font-bold text-sm focus:outline-none focus:bg-surface-variant transition-colors placeholder:text-primary/30" placeholder="John Doe">
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block font-black uppercase text-[10px] mb-1 flex items-center gap-1">
+                <span class="material-symbols-outlined" style="font-size:12px;">mail</span> Email
+              </label>
+              <input type="email" id="ob-email" class="w-full p-2.5 border-4 border-primary bg-background font-bold text-sm focus:outline-none focus:bg-surface-variant transition-colors placeholder:text-primary/30" placeholder="john@example.com">
+            </div>
+
+            <!-- College -->
+            <div>
+              <label class="block font-black uppercase text-[10px] mb-1 flex items-center gap-1">
+                <span class="material-symbols-outlined" style="font-size:12px;">school</span> College / University
+              </label>
+              <input type="text" id="ob-college" class="w-full p-2.5 border-4 border-primary bg-background font-bold text-sm focus:outline-none focus:bg-surface-variant transition-colors placeholder:text-primary/30" placeholder="Your College">
+            </div>
+
+            <!-- Branch + Year row -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-black uppercase text-[10px] mb-1 flex items-center gap-1">
+                  <span class="material-symbols-outlined" style="font-size:12px;">hub</span> Branch
+                </label>
+                <input type="text" id="ob-branch" class="w-full p-2.5 border-4 border-primary bg-background font-bold text-sm focus:outline-none focus:bg-surface-variant transition-colors placeholder:text-primary/30" placeholder="CS / IT / EC">
+              </div>
+              <div>
+                <label class="block font-black uppercase text-[10px] mb-1 flex items-center gap-1">
+                  <span class="material-symbols-outlined" style="font-size:12px;">calendar_month</span> Year
+                </label>
+                <select id="ob-year" class="w-full p-2.5 border-4 border-primary bg-background font-bold text-sm focus:outline-none focus:bg-surface-variant transition-colors cursor-pointer appearance-none">
+                  <option value="" disabled selected>Select</option>
+                  <option value="1st Year">1st Year</option>
+                  <option value="2nd Year">2nd Year</option>
+                  <option value="3rd Year">3rd Year</option>
+                  <option value="4th Year">4th Year</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Error message -->
+            <div id="ob-error" class="hidden text-error font-black text-[10px] uppercase tracking-widest"></div>
+
+          </div>
+
+        </div>
+
+        <!-- Submit Button (pinned bottom) -->
+        <div class="shrink-0 p-4 border-t-4 border-primary bg-background">
+          <button id="ob-submit-btn" class="w-full border-4 border-primary p-3 font-headline font-black text-lg uppercase bg-primary-container hover:bg-primary hover:text-primary-fixed transition-all neo-shadow active:translate-x-1 active:translate-y-1 active:shadow-[1px_1px_0px_0px_#1a1a1a] flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined" style="font-size:20px;">arrow_forward</span>
+            Let's Go!
+          </button>
+        </div>
+
+      </div>
+
     </main>
     
     <!-- Footer Meta -->

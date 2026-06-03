@@ -1,7 +1,72 @@
+// ─── Onboarding Gate ────────────────────────────────────────────────────────
+const viewOnboard = document.getElementById("view-onboard");
+
+function showOnboarding() {
+    // Hide solve/settings, show onboarding
+    document.getElementById("view-solve").classList.add("hidden-pane");
+    document.getElementById("view-settings").classList.add("hidden-pane");
+    viewOnboard.classList.remove("hidden-pane");
+    // Hide the settings toggle button — not needed during onboarding
+    document.getElementById("toggle-settings-btn").style.display = "none";
+    document.querySelector('[data-icon="account_circle"]').style.display = "none";
+}
+
+function hideOnboarding() {
+    viewOnboard.classList.add("hidden-pane");
+    document.getElementById("view-solve").classList.remove("hidden-pane");
+    document.getElementById("toggle-settings-btn").style.display = "";
+    document.querySelector('[data-icon="account_circle"]').style.display = "";
+}
+
 chrome.storage.local.get(["formAI_user_id"], (res) => {
-    if (!res.formAI_user_id) {
-        chrome.tabs.create({ url: chrome.runtime.getURL("onboarding.html") });
-        window.close();
+    if (!res.formAI_user_id) showOnboarding();
+});
+
+// ─── Onboarding Submit ────────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+    const obSubmitBtn = document.getElementById("ob-submit-btn");
+    const obError = document.getElementById("ob-error");
+
+    if (obSubmitBtn) {
+        obSubmitBtn.addEventListener("click", async () => {
+            const name   = document.getElementById("ob-name").value.trim();
+            const email  = document.getElementById("ob-email").value.trim();
+            const college= document.getElementById("ob-college").value.trim();
+            const branch = document.getElementById("ob-branch").value.trim();
+            const year   = document.getElementById("ob-year").value;
+
+            if (!name || !email || !college || !branch || !year) {
+                obError.textContent = "Please fill all fields.";
+                obError.classList.remove("hidden");
+                return;
+            }
+            obError.classList.add("hidden");
+
+            obSubmitBtn.disabled = true;
+            obSubmitBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:20px;">refresh</span> Saving...`;
+
+            try {
+                const res = await fetch("https://form-automation-eight.vercel.app/api/onboard", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, email, college, branch, year })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Server error");
+
+                chrome.storage.local.set({ formAI_user_id: data.user_id }, () => {
+                    obSubmitBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:20px;">check_circle</span> All Set!`;
+                    obSubmitBtn.classList.add("bg-primary", "text-primary-fixed");
+                    setTimeout(() => hideOnboarding(), 900);
+                });
+
+            } catch (err) {
+                obError.textContent = err.message;
+                obError.classList.remove("hidden");
+                obSubmitBtn.disabled = false;
+                obSubmitBtn.innerHTML = `<span class="material-symbols-outlined" style="font-size:20px;">arrow_forward</span> Let's Go!`;
+            }
+        });
     }
 });
 
