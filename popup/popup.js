@@ -442,8 +442,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const viewLogin = document.getElementById('view-login');
     const viewSolve = document.getElementById('view-solve');
     const googleLoginBtn = document.getElementById('google-login-btn');
-    const authProfile = document.getElementById('auth-profile');
-    const authPfp = document.getElementById('auth-pfp');
+    const authBtn = document.getElementById('auth-btn');
+    const toggleSettingsBtn = document.getElementById('toggle-settings-btn');
 
     // Check if user is already logged in
     const { user, requires_onboarding } = await chrome.storage.local.get(['user', 'requires_onboarding']);
@@ -457,24 +457,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         viewLogin.classList.add('hidden');
         viewSolve.classList.remove('hidden');
         
-        // Show profile picture
-        if (user.picture) {
-            authPfp.src = user.picture;
-            authProfile.classList.remove('hidden');
-        } else {
-            // fallback generic icon if no picture
-            authProfile.classList.remove('hidden');
-            authPfp.src = "https://lh3.googleusercontent.com/a/default-user=s64-c";
-        }
+        // Show account icon and settings button
+        if (authBtn) authBtn.classList.remove('hidden');
+        if (toggleSettingsBtn) toggleSettingsBtn.classList.remove('hidden');
     } else {
         // Not logged in, show login page
         viewLogin.classList.remove('hidden');
         viewSolve.classList.add('hidden');
+        if (authBtn) authBtn.classList.add('hidden');
+        if (toggleSettingsBtn) toggleSettingsBtn.classList.add('hidden');
     }
 
-    // When the top right profile picture is clicked, go to dashboard
-    if (authProfile) {
-        authProfile.addEventListener('click', () => {
+    // When the top right profile icon is clicked, go to dashboard
+    if (authBtn) {
+        authBtn.addEventListener('click', () => {
             window.location.href = '../ui/dashboard.html';
         });
     }
@@ -510,7 +506,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     const data = await resApi.json();
                     if (data.success) {
-                        const userData = { ...data.user, oauth_token: token, picture: userInfo.picture };
+                        const userData = { ...data.user, oauth_token: token };
                         await chrome.storage.local.set({ user: userData, requires_onboarding: data.requires_onboarding });
                         
                         if (data.requires_onboarding) {
