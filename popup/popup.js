@@ -439,37 +439,62 @@ function escapeCSVCell(value) {
 
 // ---- AUTHENTICATION HANDLING ----
 document.addEventListener('DOMContentLoaded', async () => {
-    const authBtn = document.getElementById('auth-btn');
-    if (!authBtn) return;
+    const viewLogin = document.getElementById('view-login');
+    const viewSolve = document.getElementById('view-solve');
+    const googleLoginBtn = document.getElementById('google-login-btn');
+    const authProfile = document.getElementById('auth-profile');
+    const authPfp = document.getElementById('auth-pfp');
 
     // Check if user is already logged in
-    const { user } = await chrome.storage.local.get('user');
+    const { user, requires_onboarding } = await chrome.storage.local.get(['user', 'requires_onboarding']);
+    
     if (user && user.email) {
-        // Change icon to show logged in state if desired
-        authBtn.classList.add('text-secondary');
+        if (requires_onboarding) {
+            window.location.href = '../ui/onboarding.html';
+            return;
+        }
+        // User is fully authenticated, show the main UI
+        viewLogin.classList.add('hidden');
+        viewSolve.classList.remove('hidden');
+        
+        // Show profile picture
+        if (user.picture) {
+            authPfp.src = user.picture;
+            authProfile.classList.remove('hidden');
+        } else {
+            // fallback generic icon if no picture
+            authProfile.classList.remove('hidden');
+            authPfp.src = "https://lh3.googleusercontent.com/a/default-user=s64-c";
+        }
+    } else {
+        // Not logged in, show login page
+        viewLogin.classList.remove('hidden');
+        viewSolve.classList.add('hidden');
     }
 
-    authBtn.addEventListener('click', () => {
-        // First check if already logged in -> go straight to dashboard or onboarding
-        chrome.storage.local.get(['user', 'requires_onboarding'], (res) => {
-            if (res.user && res.user.email) {
-                if (res.requires_onboarding) {
-                    window.location.href = '../ui/onboarding.html';
-                } else {
-                    window.location.href = '../ui/dashboard.html';
-                }
-                return;
-            }
+    // When the top right profile picture is clicked, go to dashboard
+    if (authProfile) {
+        authProfile.addEventListener('click', () => {
+            window.location.href = '../ui/dashboard.html';
+        });
+    }
 
-            // Otherwise initiate OAuth
+    // When the big "Continue with Google" button is clicked
+    if (googleLoginBtn) {
+        googleLoginBtn.addEventListener('click', () => {
+            googleLoginBtn.innerHTML = 'Loading...';
+            googleLoginBtn.disabled = true;
+
             chrome.identity.getAuthToken({ interactive: true }, async function(token) {
                 if (chrome.runtime.lastError || !token) {
                     console.error("Auth Error:", chrome.runtime.lastError);
+                    googleLoginBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" alt="Google"> Continue with Google';
+                    googleLoginBtn.disabled = false;
                     return;
                 }
                 
                 try {
-                    // Fetch basic profile info to send to backend
+                    // Fetch basic profile info to send to backend and get picture
                     const userInfoResp = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
                         headers: { Authorization: `Bearer ${token}` }
                     });
@@ -485,22 +510,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     const data = await resApi.json();
                     if (data.success) {
-                        const userData = { ...data.user, oauth_token: token };
+                        const userData = { ...data.user, oauth_token: token, picture: userInfo.picture };
                         await chrome.storage.local.set({ user: userData, requires_onboarding: data.requires_onboarding });
                         
                         if (data.requires_onboarding) {
                             window.location.href = '../ui/onboarding.html';
                         } else {
-                            window.location.href = '../ui/dashboard.html';
+                            window.location.href = '../popup/popup.html';
                         }
                     } else {
                         console.error("Backend login failed:", data.error);
+                        googleLoginBtn.innerHTML = 'Error. Try Again.';
+                        googleLoginBtn.disabled = false;
                     }
                 } catch (err) {
                     console.error("Fetch error during auth:", err);
+                    googleLoginBtn.innerHTML = 'Error. Try Again.';
+                    googleLoginBtn.disabled = false;
                 }
             });
         });
-    });
+    }
 });
 
