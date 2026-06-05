@@ -1,13 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "FormAI Solver",
+  "name": "LazyForm",
   "version": "1.0.0",
-  "description": "AI-powered Google Form Auto Answering Extension",
+  "description": "Smartly auto-fills Google Forms using AI — just click & relax.",
   "permissions": [
     "activeTab",
     "scripting",
-    "storage",
-    "identity"
+    "storage"
   ],
   "host_permissions": [
     "https://docs.google.com/forms/*",
@@ -15,12 +14,8 @@
   ],
   "content_scripts": [
     {
-      "matches": [
-        "https://docs.google.com/forms/*"
-      ],
-      "js": [
-        "scripts/content.js"
-      ]
+      "matches": ["https://docs.google.com/forms/*"],
+      "js": ["scripts/content.js"]
     }
   ],
   "background": {
@@ -38,12 +33,5 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  },
-  "oauth2": {
-    "client_id": "655943681552-poir1jgbmjfjca6vuv8tfu56ta5b52ld.apps.googleusercontent.com",
-    "scopes": [
-      "https://www.googleapis.com/auth/userinfo.email",
-      "https://www.googleapis.com/auth/userinfo.profile"
-    ]
   }
 }

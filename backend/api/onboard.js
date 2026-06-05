@@ -28,7 +28,7 @@ export default async function handler(req, res) {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
   try {
-    // Upsert logic: if email exists, return existing user ID. Otherwise insert.
+    // Upsert user
     const result = await pool.query(
       `INSERT INTO users (name, email, college, branch, year) 
        VALUES ($1, $2, $3, $4, $5) 
@@ -36,6 +36,13 @@ export default async function handler(req, res) {
        SET name = EXCLUDED.name, college = EXCLUDED.college, branch = EXCLUDED.branch, year = EXCLUDED.year
        RETURNING id;`,
       [name, email, college, branch, year]
+    );
+
+    // Track this college (upsert — increment count if exists)
+    await pool.query(
+      `INSERT INTO colleges (name, student_count) VALUES ($1, 1)
+       ON CONFLICT (name) DO UPDATE SET student_count = colleges.student_count + 1;`,
+      [college]
     );
 
     const userId = result.rows[0].id;

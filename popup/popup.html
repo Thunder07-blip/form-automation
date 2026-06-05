@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>FormAI | Neo-Brutalist</title>
+  <title>LazyForm</title>
   
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700;900&display=swap" rel="stylesheet">
@@ -23,7 +23,7 @@
     <!-- TopAppBar -->
     <header class="flex justify-between items-center w-full px-5 py-3 bg-background border-b-4 border-primary shrink-0">
       <div class="font-headline font-black uppercase text-2xl tracking-tighter text-primary">
-        FORMAI
+        LAZYFORM
       </div>
       <div class="flex items-center gap-4">
         <button id="toggle-settings-btn" class="text-primary border-2 border-primary px-3 py-1 font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
@@ -63,6 +63,12 @@
         <!-- Progress Bar -->
         <div class="w-full h-2 bg-surface-variant border-b-2 border-primary shrink-0 overflow-hidden">
           <div id="progress-bar" class="h-full transition-all duration-300 ease-linear striped-bar" style="width: 0%; background-image: repeating-linear-gradient(-45deg, #000, #000 10px, #FDE047 10px, #FDE047 20px);"></div>
+        </div>
+
+        <!-- No API Key Warning Banner -->
+        <div id="no-key-banner" class="hidden shrink-0 bg-[#7a0000] border-b-2 border-primary px-4 py-1.5 flex items-center gap-2">
+          <span class="material-symbols-outlined text-[#ffaaaa]" style="font-size:13px;">warning</span>
+          <p class="text-[10px] font-black uppercase text-[#ffaaaa] tracking-wider">No API key set — go to Settings to add one.</p>
         </div>
         
         <!-- Scrollable Content -->
@@ -191,12 +197,15 @@
               <input type="email" id="ob-email" class="w-full p-2.5 border-4 border-primary bg-background font-bold text-sm focus:outline-none focus:bg-surface-variant transition-colors placeholder:text-primary/30" placeholder="john@example.com">
             </div>
 
-            <!-- College -->
-            <div>
+            <!-- College Autocomplete -->
+            <div class="relative" id="college-autocomplete-wrap">
               <label class="block font-black uppercase text-[10px] mb-1 flex items-center gap-1">
                 <span class="material-symbols-outlined" style="font-size:12px;">school</span> College / University
               </label>
-              <input type="text" id="ob-college" class="w-full p-2.5 border-4 border-primary bg-background font-bold text-sm focus:outline-none focus:bg-surface-variant transition-colors placeholder:text-primary/30" placeholder="Your College">
+              <input type="text" id="ob-college" autocomplete="off"
+                class="w-full p-2.5 border-4 border-primary bg-background font-bold text-sm focus:outline-none focus:bg-surface-variant transition-colors placeholder:text-primary/30"
+                placeholder="Search your college...">
+              <ul id="college-dropdown" class="college-dropdown hidden"></ul>
             </div>
 
             <!-- Branch + Year row -->
@@ -243,7 +252,7 @@
     
     <!-- Footer Meta -->
     <footer class="px-5 py-1.5 border-t-2 border-primary bg-surface-container flex justify-between items-center shrink-0">
-      <span class="text-[9px] font-black uppercase opacity-40">FormAI Neo-Brutalist v2</span>
+      <span class="text-[9px] font-black uppercase opacity-40">LazyForm v2</span>
       <div class="flex gap-1.5">
         <div class="w-2 h-2 bg-secondary border border-primary"></div>
         <div class="w-2 h-2 bg-primary-fixed border border-primary"></div>

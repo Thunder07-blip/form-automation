@@ -2,11 +2,9 @@
 const viewOnboard = document.getElementById("view-onboard");
 
 function showOnboarding() {
-    // Hide solve/settings, show onboarding
     document.getElementById("view-solve").classList.add("hidden-pane");
     document.getElementById("view-settings").classList.add("hidden-pane");
     viewOnboard.classList.remove("hidden-pane");
-    // Hide the settings toggle button — not needed during onboarding
     document.getElementById("toggle-settings-btn").style.display = "none";
     document.querySelector('[data-icon="account_circle"]').style.display = "none";
 }
@@ -22,8 +20,129 @@ chrome.storage.local.get(["formAI_user_id"], (res) => {
     if (!res.formAI_user_id) showOnboarding();
 });
 
+// ─── No API-Key Banner ────────────────────────────────────────────────────────
+function checkAndShowNoKeyBanner() {
+    chrome.storage.local.get(["providerKeys"], (data) => {
+        const keys = data.providerKeys || [];
+        const hasKey = keys.some(p => p.key && p.key.trim() !== "");
+        const banner = document.getElementById("no-key-banner");
+        if (banner) {
+            if (hasKey) banner.classList.remove("visible");
+            else         banner.classList.add("visible");
+        }
+    });
+}
+checkAndShowNoKeyBanner();
+
+// ─── College Autocomplete ─────────────────────────────────────────────────────
+const COLLEGE_LIST = [
+    "IIT Bombay", "IIT Delhi", "IIT Madras", "IIT Kharagpur", "IIT Kanpur",
+    "IIT Roorkee", "IIT Guwahati", "IIT Hyderabad", "IIT Indore", "IIT Jodhpur",
+    "IIT Bhubaneswar", "IIT Gandhinagar", "IIT Patna", "IIT Ropar", "IIT Mandi",
+    "NIT Trichy", "NIT Warangal", "NIT Surathkal", "NIT Rourkela", "NIT Calicut",
+    "NIT Allahabad", "NIT Durgapur", "NIT Jaipur", "NIT Bhopal", "NIT Surat",
+    "BITS Pilani", "BITS Goa", "BITS Hyderabad",
+    "Anna University", "VIT Vellore", "SRM Institute", "Manipal Institute of Technology",
+    "Amity University", "Symbiosis Institute", "Pune University", "Mumbai University",
+    "Delhi University", "Jadavpur University", "Osmania University", "Hyderabad University",
+    "Jamia Millia Islamia", "AMU", "BHU", "IIIT Hyderabad", "IIIT Bangalore",
+    "IIIT Allahabad", "IIIT Delhi", "IIIT Gwalior", "DTU", "NSUT", "IGDTUW",
+    "Thapar University", "Chandigarh University", "LPU", "Chitkara University",
+    "Savitribai Phule Pune University", "COEP", "VJTI", "ICT Mumbai",
+    "PSG College of Technology", "SSN College", "SREC", "CEG Chennai",
+    "DSCE Bangalore", "RV College", "BMS College", "MSRIT", "PES University",
+    "JSS Academy", "Presidency University", "Vellore Institute of Technology",
+    "Kalinga Institute", "SOA University", "GIET University", "CV Raman University",
+    "GEC Thrissur", "Model Engineering College", "CUSAT", "NIT Calicut",
+    "Rajasthan Technical University", "Poornima College", "Government College of Engineering Pune"
+];
+
+function initCollegeAutocomplete() {
+    const input = document.getElementById("ob-college");
+    const dropdown = document.getElementById("college-dropdown");
+    if (!input || !dropdown) return;
+
+    let activeIndex = -1;
+    let currentQuery = "";
+
+    function renderDropdown(query) {
+        currentQuery = query;
+        const q = query.toLowerCase().trim();
+        dropdown.innerHTML = "";
+        activeIndex = -1;
+
+        const filtered = q.length > 0
+            ? COLLEGE_LIST.filter(c => c.toLowerCase().includes(q)).slice(0, 12)
+            : [];
+
+        if (filtered.length === 0 && q.length === 0) {
+            dropdown.classList.add("hidden"); return;
+        }
+
+        filtered.forEach((college, i) => {
+            const li = document.createElement("li");
+            li.textContent = college;
+            li.addEventListener("mousedown", (e) => {
+                e.preventDefault();
+                input.value = college;
+                dropdown.classList.add("hidden");
+            });
+            dropdown.appendChild(li);
+        });
+
+        // "Add new college" option
+        if (q.length > 1) {
+            const li = document.createElement("li");
+            li.className = "add-new";
+            li.textContent = `+ Add "${query}"`;
+            li.addEventListener("mousedown", (e) => {
+                e.preventDefault();
+                input.value = query;
+                dropdown.classList.add("hidden");
+            });
+            dropdown.appendChild(li);
+        }
+
+        if (dropdown.children.length > 0) dropdown.classList.remove("hidden");
+        else dropdown.classList.add("hidden");
+    }
+
+    input.addEventListener("input", () => renderDropdown(input.value));
+    input.addEventListener("focus", () => { if (input.value.length > 0) renderDropdown(input.value); });
+    input.addEventListener("blur", () => setTimeout(() => dropdown.classList.add("hidden"), 150));
+
+    input.addEventListener("keydown", (e) => {
+        const items = dropdown.querySelectorAll("li");
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            activeIndex = Math.min(activeIndex + 1, items.length - 1);
+            items.forEach((el, i) => el.classList.toggle("active", i === activeIndex));
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            activeIndex = Math.max(activeIndex - 1, -1);
+            items.forEach((el, i) => el.classList.toggle("active", i === activeIndex));
+        } else if (e.key === "Enter") {
+            if (activeIndex >= 0 && items[activeIndex]) {
+                e.preventDefault();
+                const chosen = items[activeIndex].textContent.replace(/^\+ "?|"?$/g, "").replace(/^\+ /, "");
+                // For "add new" items, extract the actual text
+                if (items[activeIndex].classList.contains("add-new")) {
+                    input.value = currentQuery;
+                } else {
+                    input.value = items[activeIndex].textContent;
+                }
+                dropdown.classList.add("hidden");
+            }
+        } else if (e.key === "Escape") {
+            dropdown.classList.add("hidden");
+        }
+    });
+}
+
 // ─── Onboarding Submit ────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
+    initCollegeAutocomplete();
+
     const obSubmitBtn = document.getElementById("ob-submit-btn");
     const obError = document.getElementById("ob-error");
 
@@ -69,6 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
 
 const solveBtn = document.getElementById("solve-btn");
 const statusText = document.getElementById("status-text");
@@ -254,7 +374,9 @@ function restoreSolverState(state) {
 
         if (state.providerUsed) {
             providerBadge.style.display = "block";
-            providerBadge.innerText = state.providerUsed.toUpperCase();
+            // Show only vendor name, not the model — e.g. "GROQ" not "GROQ/LLAMA-3"
+            const vendor = state.providerUsed.split("/")[0].toUpperCase();
+            providerBadge.innerText = `via ${vendor}`;
         } else {
             providerBadge.style.display = "none";
         }
@@ -282,7 +404,8 @@ function restoreSolverState(state) {
             
             if (state.providerUsed) {
                 providerBadge.style.display = "block";
-                providerBadge.innerText = state.providerUsed.toUpperCase();
+                const vendor = state.providerUsed.split("/")[0].toUpperCase();
+                providerBadge.innerText = `via ${vendor}`;
             } else {
                 providerBadge.style.display = "none";
             }
@@ -386,6 +509,7 @@ saveKeyBtn.addEventListener("click", () => {
     const cleanProviders = activeProviders.filter(p => p.key.trim() !== "");
     chrome.storage.local.set({ providerKeys: cleanProviders, userProfile: profile }, () => {
         writeLog("UI Action", `Saved provider and user profile configurations. Providers: ${cleanProviders.map(p => p.vendor).join(', ')}`);
+        checkAndShowNoKeyBanner(); // Update the no-key banner immediately
         viewSolve.classList.remove('hidden-pane');
         viewSettings.classList.add('hidden-pane');
         toggleSettingsBtn.innerHTML = `

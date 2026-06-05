@@ -1428,3 +1428,81 @@ header {
   --tw-shadow-colored: 0 0 #0000;
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
+
+/* ── College Autocomplete Dropdown ─────────────────────────────── */
+
+.college-dropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background-color: #f5f0e8;
+  border: 4px solid #1a1a1a;
+  box-shadow: 6px 6px 0px 0px #1a1a1a;
+  max-height: 160px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  animation: dropdown-in 0.12s ease;
+}
+
+.college-dropdown.hidden {
+  display: none;
+}
+
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.college-dropdown li {
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  border-bottom: 2px solid #1a1a1a;
+  transition: background-color 0.1s;
+}
+
+.college-dropdown li:last-child {
+  border-bottom: none;
+}
+
+.college-dropdown li:hover,
+.college-dropdown li.active {
+  background-color: #ffcc00;
+}
+
+.college-dropdown li.add-new {
+  color: #0055ff;
+  border-top: 2px dashed #1a1a1a;
+  border-bottom: none;
+}
+
+.college-dropdown li.add-new:hover {
+  background-color: #d6e3ff;
+}
+
+/* ── No-Key Banner Flex fix ─────────────────────────────────────── */
+
+#no-key-banner {
+  display: none;
+}
+
+#no-key-banner.visible {
+  display: flex;
+}
+
+/* ── Placeholder opacity shim for ob-* inputs ───────────────────── */
+
+#ob-name::placeholder,
+#ob-email::placeholder,
+#ob-college::placeholder,
+#ob-branch::placeholder {
+  color: rgba(26, 26, 26, 0.3);
+}
+
