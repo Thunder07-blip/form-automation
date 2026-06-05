@@ -66,9 +66,12 @@
         </div>
 
         <!-- No API Key Warning Banner -->
-        <div id="no-key-banner" class="hidden shrink-0 bg-[#7a0000] border-b-2 border-primary px-4 py-1.5 flex items-center gap-2">
-          <span class="material-symbols-outlined text-[#ffaaaa]" style="font-size:13px;">warning</span>
-          <p class="text-[10px] font-black uppercase text-[#ffaaaa] tracking-wider">No API key set — go to Settings to add one.</p>
+        <div id="no-key-banner" class="shrink-0 border-b-2 border-primary px-4 py-2 flex flex-col gap-0.5" style="display:none; background-color:#7a0000;">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined" style="font-size:13px; color:#ffaaaa;">warning</span>
+            <p class="text-[10px] font-black uppercase tracking-wider" style="color:#ffaaaa;">No API key set — go to <strong>Settings</strong> to add one.</p>
+          </div>
+          <p class="text-[9px] font-bold uppercase tracking-wide" style="color:#ff8888; padding-left:19px;">Also add your personal info there for better answers.</p>
         </div>
         
         <!-- Scrollable Content -->
@@ -206,6 +209,17 @@
                 class="w-full p-2.5 border-4 border-primary bg-background font-bold text-sm focus:outline-none focus:bg-surface-variant transition-colors placeholder:text-primary/30"
                 placeholder="Search your college...">
               <ul id="college-dropdown" class="college-dropdown hidden"></ul>
+            </div>
+
+            <!-- City Autocomplete -->
+            <div class="relative" id="city-autocomplete-wrap">
+              <label class="block font-black uppercase text-[10px] mb-1 flex items-center gap-1">
+                <span class="material-symbols-outlined" style="font-size:12px;">location_city</span> City
+              </label>
+              <input type="text" id="ob-city" autocomplete="off"
+                class="w-full p-2.5 border-4 border-primary bg-background font-bold text-sm focus:outline-none focus:bg-surface-variant transition-colors"
+                placeholder="Search your city...">
+              <ul id="city-dropdown" class="college-dropdown hidden"></ul>
             </div>
 
             <!-- Branch + Year row -->

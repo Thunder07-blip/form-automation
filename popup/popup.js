@@ -27,8 +27,7 @@ function checkAndShowNoKeyBanner() {
         const hasKey = keys.some(p => p.key && p.key.trim() !== "");
         const banner = document.getElementById("no-key-banner");
         if (banner) {
-            if (hasKey) banner.classList.remove("visible");
-            else         banner.classList.add("visible");
+            banner.style.display = hasKey ? "none" : "flex";
         }
     });
 }
@@ -139,9 +138,75 @@ function initCollegeAutocomplete() {
     });
 }
 
+// ─── City Autocomplete ────────────────────────────────────────────────────────
+const CITY_LIST = [
+    "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad",
+    "Jaipur", "Surat", "Lucknow", "Kanpur", "Nagpur", "Indore", "Bhopal", "Patna",
+    "Vadodara", "Ludhiana", "Agra", "Nashik", "Faridabad", "Meerut", "Rajkot", "Kalyan",
+    "Vasai", "Varanasi", "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Allahabad",
+    "Ranchi", "Howrah", "Coimbatore", "Jabalpur", "Gwalior", "Vijayawada", "Jodhpur",
+    "Madurai", "Raipur", "Kota", "Chandigarh", "Guwahati", "Solapur", "Hubli", "Bareilly",
+    "Moradabad", "Mysore", "Tiruchirappalli", "Tiruppur", "Gurgaon", "Noida", "Navi Mumbai",
+    "Jalandhar", "Bhubaneswar", "Salem", "Warangal", "Guntur", "Bhiwandi", "Saharanpur",
+    "Gorakhpur", "Bikaner", "Amravati", "Jamshedpur", "Bhilai", "Cuttack", "Firozabad",
+    "Kochi", "Dehradun", "Durgapur", "Asansol", "Nanded", "Kolhapur", "Ajmer", "Gulbarga",
+    "Jamnagar", "Ujjain", "Loni", "Siliguri", "Jhansi", "Ulhasnagar", "Mangalore",
+    "Erode", "Vellore", "Tirunelveli", "Malegaon", "Akola", "Gaya", "Udaipur",
+    "Patiala", "Rohtak", "Bokaro", "Aligarh", "Bhavnagar", "Davangere", "Ghaziabad",
+    "Thrissur", "Kozhikode", "Thiruvananthapuram", "Puducherry", "Shimla", "Imphal", "Shillong"
+];
+
+function initCityAutocomplete() {
+    const input = document.getElementById("ob-city");
+    const dropdown = document.getElementById("city-dropdown");
+    if (!input || !dropdown) return;
+
+    let activeIndex = -1;
+    let currentQuery = "";
+
+    function render(query) {
+        currentQuery = query;
+        const q = query.toLowerCase().trim();
+        dropdown.innerHTML = "";
+        activeIndex = -1;
+
+        const filtered = q.length > 0 ? CITY_LIST.filter(c => c.toLowerCase().includes(q)).slice(0, 10) : [];
+        if (filtered.length === 0 && q.length === 0) { dropdown.classList.add("hidden"); return; }
+
+        filtered.forEach(item => {
+            const li = document.createElement("li");
+            li.textContent = item;
+            li.addEventListener("mousedown", e => { e.preventDefault(); input.value = item; dropdown.classList.add("hidden"); });
+            dropdown.appendChild(li);
+        });
+
+        if (q.length > 1) {
+            const li = document.createElement("li");
+            li.className = "add-new";
+            li.textContent = `+ Add "${query}"`;
+            li.addEventListener("mousedown", e => { e.preventDefault(); input.value = query; dropdown.classList.add("hidden"); });
+            dropdown.appendChild(li);
+        }
+
+        dropdown.children.length > 0 ? dropdown.classList.remove("hidden") : dropdown.classList.add("hidden");
+    }
+
+    input.addEventListener("input", () => render(input.value));
+    input.addEventListener("focus", () => { if (input.value.length > 0) render(input.value); });
+    input.addEventListener("blur", () => setTimeout(() => dropdown.classList.add("hidden"), 150));
+    input.addEventListener("keydown", e => {
+        const items = dropdown.querySelectorAll("li");
+        if (e.key === "ArrowDown") { e.preventDefault(); activeIndex = Math.min(activeIndex + 1, items.length - 1); items.forEach((el, i) => el.classList.toggle("active", i === activeIndex)); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); activeIndex = Math.max(activeIndex - 1, -1); items.forEach((el, i) => el.classList.toggle("active", i === activeIndex)); }
+        else if (e.key === "Enter" && activeIndex >= 0 && items[activeIndex]) { e.preventDefault(); input.value = items[activeIndex].classList.contains("add-new") ? currentQuery : items[activeIndex].textContent; dropdown.classList.add("hidden"); }
+        else if (e.key === "Escape") dropdown.classList.add("hidden");
+    });
+}
+
 // ─── Onboarding Submit ────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
     initCollegeAutocomplete();
+    initCityAutocomplete();
 
     const obSubmitBtn = document.getElementById("ob-submit-btn");
     const obError = document.getElementById("ob-error");
@@ -151,10 +216,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const name   = document.getElementById("ob-name").value.trim();
             const email  = document.getElementById("ob-email").value.trim();
             const college= document.getElementById("ob-college").value.trim();
+            const city   = document.getElementById("ob-city").value.trim();
             const branch = document.getElementById("ob-branch").value.trim();
             const year   = document.getElementById("ob-year").value;
 
-            if (!name || !email || !college || !branch || !year) {
+            if (!name || !email || !college || !city || !branch || !year) {
                 obError.textContent = "Please fill all fields.";
                 obError.classList.remove("hidden");
                 return;
@@ -168,7 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const res = await fetch("https://form-automation-eight.vercel.app/api/onboard", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name, email, college, branch, year })
+                    body: JSON.stringify({ name, email, college, city, branch, year })
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || "Server error");

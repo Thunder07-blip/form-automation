@@ -19,9 +19,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { name, email, college, branch, year } = req.body;
+  const { name, email, college, city, branch, year } = req.body;
 
-  if (!name || !email || !college || !branch || !year) {
+  if (!name || !email || !college || !city || !branch || !year) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -30,12 +30,12 @@ export default async function handler(req, res) {
   try {
     // Upsert user
     const result = await pool.query(
-      `INSERT INTO users (name, email, college, branch, year) 
-       VALUES ($1, $2, $3, $4, $5) 
+      `INSERT INTO users (name, email, college, city, branch, year) 
+       VALUES ($1, $2, $3, $4, $5, $6) 
        ON CONFLICT (email) DO UPDATE 
-       SET name = EXCLUDED.name, college = EXCLUDED.college, branch = EXCLUDED.branch, year = EXCLUDED.year
+       SET name = EXCLUDED.name, college = EXCLUDED.college, city = EXCLUDED.city, branch = EXCLUDED.branch, year = EXCLUDED.year
        RETURNING id;`,
-      [name, email, college, branch, year]
+      [name, email, college, city, branch, year]
     );
 
     // Track this college (upsert — increment count if exists)
