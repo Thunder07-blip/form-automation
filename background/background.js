@@ -429,7 +429,7 @@ async function retryEmptyPolymorphicAnswers(answers, blocks, providerKeys, syste
   if (emptyBlockIdxs.length === 0) return answers;
 
   // Check if ALL providers are rate-limited or broken → don't even try
-  const availableProviders = providerKeys.filter(p => !isProviderRateLimited(p.key, p.vendor) && !isProviderBroken(p.key));
+  const availableProviders = providerKeys.filter(p => !isProviderRateLimited(p) && !isProviderBroken(p));
   if (availableProviders.length === 0) {
     debugWarn("Retry", `All keys rate-limited. Skipping ${emptyBlockIdxs.length} retries to avoid retry storm.`);
     await writeLog("Retry Skips", `All providers rate-limited. Skipping recovery retries for ${emptyBlockIdxs.length} block(s).`);
@@ -448,7 +448,7 @@ async function retryEmptyPolymorphicAnswers(answers, blocks, providerKeys, syste
     }
 
     // Re-check availability before each retry
-    const stillAvailable = providerKeys.filter(p => !isProviderRateLimited(p.key, p.vendor));
+    const stillAvailable = providerKeys.filter(p => !isProviderRateLimited(p) && !isProviderBroken(p));
     if (stillAvailable.length === 0) {
       debugWarn("Retry", "All keys now rate-limited. Stopping retries.");
       await writeLog("Retry Warning", "All keys now rate-limited. Stopping recoveries.");
@@ -508,7 +508,8 @@ async function handleSolveForm(blocks, tempInstruction, tabId) {
     return;
   }
   isSolving = true;
-  brokenProviders = {}; // Reset broken providers list for this new run
+  brokenProviders = {};       // Reset per-run: fresh key health check every solve
+  rateLimitedProviders = {};  // Reset per-run: don't carry stale rate-limit timers from previous runs
   const solveStartTimeMs = Date.now();
   const solveStartTimeIso = new Date().toISOString();
 
