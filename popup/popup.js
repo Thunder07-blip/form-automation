@@ -590,18 +590,24 @@ solveBtn.addEventListener("click", () => {
     // Auto-save any modified keys/profile inputs on click of Solve Form
     const profile = profileInput.value.trim();
     const cleanProviders = activeProviders.filter(p => p.key.trim() !== "");
-    chrome.storage.local.set({ providerKeys: cleanProviders, userProfile: profile, missingContextHandling: missingContextState });
+    // (keys are saved in the callback below — see CRITICAL FIX)
 
     errorBox.style.display = "none";
     providerBadge.style.display = "none";
     resetProgress();
-    
+
     setTimeout(() => {
         updateStatus("Analyzing page structure...", "analyzing");
         setProgress(10);
     }, 10);
-    
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+
+    // CRITICAL FIX: storage.set MUST complete before background reads providerKeys.
+    // Previously this was fire-and-forget, causing background to read empty keys.
+    chrome.storage.local.set(
+        { providerKeys: cleanProviders, userProfile: profile, missingContextHandling: missingContextState },
+        () => {
+        writeLog("UI Action", `Provider keys saved (${cleanProviders.length} providers). Now scanning form...`);
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const activeTab = tabs[0];
         
         writeLog("UI Action", "Sending scan request (EXTRACT_QUESTIONS) to current tab content script.");
@@ -665,8 +671,9 @@ solveBtn.addEventListener("click", () => {
                 // Background solves asynchronously now. Visuals will update via status broadcast messages.
             });
         });
-    });
-});
+    }); // end chrome.tabs.query
+    }); // end chrome.storage.local.set callback
+}); // end solveBtn click
 
 function updateStatus(text, stateClass) {
     statusText.innerText = text;
