@@ -624,6 +624,7 @@ Example Output:
 
     let strategy1Answers = null;
     let providerUsed = null;
+    let apiCallSucceeded = false; // Track if any API call returned a real response
 
     for (const prov of providerKeys) {
       if (isProviderBroken(prov)) {
@@ -656,6 +657,7 @@ Example Output:
         await writeLog("JSON Parsing", `Parsed JSON answers for ${answers?.length || 0} blocks.`);
         const normalized = normalizePolymorphicAnswers(answers, blocks);
         
+        apiCallSucceeded = true; // ✅ At least one API call worked
         await writeLog("Retry Check", "Checking if any answers are empty/partial and require individual retries...");
         strategy1Answers = await retryEmptyPolymorphicAnswers(normalized, blocks, providerKeys, finalSystemPrompt);
         providerUsed = `${prov.vendor}/${prov.modelLabel || prov.model}`;
@@ -696,10 +698,16 @@ Example Output:
             let statusClass = "success";
             let warning = null;
             
-            if (check.allEmpty) {
-              statusMsg = "All APIs permanently exhausted/invalid. Left empty cells to manually fill.";
+            // Only say "all exhausted" if zero API calls actually succeeded
+            if (!apiCallSucceeded) {
+              statusMsg = "All API keys are invalid or exhausted. Please check Settings.";
               statusClass = "error";
               warning = "ALL_EXHAUSTED";
+            } else if (check.emptyCount > 0 && check.emptyCount === check.totalCount) {
+              // API worked but LLM returned no useful values (e.g. all 'none') — partial failure
+              statusMsg = "Form processed — some fields could not be auto-filled. Check your profile in Settings.";
+              statusClass = "success";
+              warning = "PARTIAL_EXHAUSTED";
             } else if (check.emptyCount > 0) {
               statusMsg = `Filled ${check.totalCount - check.emptyCount}/${check.totalCount} blocks. Remaining left to fill manually.`;
               statusClass = "success";
@@ -805,6 +813,7 @@ Example Output:
             const parsedArr = Array.isArray(parsed) ? parsed : (parsed.answers || [parsed]);
             batchAnswers = normalizePolymorphicAnswers(parsedArr, batch);
             providerUsed = `${prov.vendor}/${prov.modelLabel || prov.model}`;
+            apiCallSucceeded = true; // ✅ At least one API call worked
             debugLog(`Batch ${bIdx + 1}`, `✅ ${prov.vendor.toUpperCase()}/${prov.modelLabel || prov.model} on attempt ${attempt}`);
             break;
 
@@ -865,10 +874,15 @@ Example Output:
           let statusClass = "success";
           let warning = null;
           
-          if (check.allEmpty) {
-            statusMsg = "All APIs permanently exhausted/invalid. Left empty cells to manually fill.";
+          // Only say "all exhausted" if zero API calls actually succeeded
+          if (!apiCallSucceeded) {
+            statusMsg = "All API keys are invalid or exhausted. Please check Settings.";
             statusClass = "error";
             warning = "ALL_EXHAUSTED";
+          } else if (check.emptyCount > 0 && check.emptyCount === check.totalCount) {
+            statusMsg = "Form processed — some fields could not be auto-filled. Check your profile in Settings.";
+            statusClass = "success";
+            warning = "PARTIAL_EXHAUSTED";
           } else if (check.emptyCount > 0) {
             statusMsg = `Filled ${check.totalCount - check.emptyCount}/${check.totalCount} blocks. Remaining left to fill manually.`;
             statusClass = "success";
