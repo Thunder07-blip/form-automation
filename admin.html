@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LazyForm Admin</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f5f0e8;
+      color: #1a1a1a;
+      font-family: Inter, Arial, sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .panel {
+      width: min(720px, 100%);
+      border: 4px solid #1a1a1a;
+      background: #ffcc00;
+      box-shadow: 8px 8px 0 #1a1a1a;
+      padding: 24px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-family: "Space Grotesk", Arial, sans-serif;
+      font-size: 34px;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    p {
+      margin: 0 0 18px;
+      font-weight: 800;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 6px;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    input,
+    textarea,
+    select,
+    button {
+      width: 100%;
+      border: 3px solid #1a1a1a;
+      background: #f5f0e8;
+      color: #1a1a1a;
+      font: inherit;
+      font-weight: 800;
+      padding: 12px;
+    }
+
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    button {
+      margin-top: 18px;
+      background: #1a1a1a;
+      color: #f5f0e8;
+      box-shadow: 4px 4px 0 #0055ff;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    button:active {
+      transform: translate(4px, 4px);
+      box-shadow: none;
+    }
+
+    .hint {
+      margin-top: 8px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: none;
+    }
+
+    .status {
+      margin-top: 16px;
+      min-height: 22px;
+      color: #0055ff;
+    }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <h1>College Control</h1>
+    <p>Launch allowlist now, scalable catalog later.</p>
+
+    <label for="admin-token">Admin token</label>
+    <input id="admin-token" type="password" placeholder="Required: set ADMIN_TOKEN in backend env">
+
+    <label for="mode">Autocomplete mode</label>
+    <select id="mode">
+      <option value="launch_allowlist">Launch allowlist only</option>
+      <option value="open_catalog">Open catalog + user add later</option>
+    </select>
+
+    <label for="college-list">Visible colleges</label>
+    <textarea id="college-list" spellcheck="false" placeholder="VIT Bibwewadi&#10;VIT Kondhwa"></textarea>
+    <div class="hint">One college per line. For this product test, keep only VIT Bibwewadi and VIT Kondhwa active.</div>
+
+    <button id="save-btn">Save College Settings</button>
+    <div id="status" class="status"></div>
+  </main>
+
+  <script>
+    const API_URL = 'https://form-automation-eight.vercel.app/api/admin_colleges';
+    const tokenInput = document.getElementById('admin-token');
+    const modeInput = document.getElementById('mode');
+    const collegeList = document.getElementById('college-list');
+    const statusEl = document.getElementById('status');
+    const saveBtn = document.getElementById('save-btn');
+
+    function headers() {
+      const token = tokenInput.value.trim();
+      return {
+        'Content-Type': 'application/json',
+        ...(token ? { 'X-Admin-Token': token } : {})
+      };
+    }
+
+    function collegesFromTextarea() {
+      return collegeList.value
+        .split('\n')
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+
+    async function loadSettings() {
+      statusEl.textContent = 'Loading...';
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load settings');
+
+        modeInput.value = data.mode || 'launch_allowlist';
+        collegeList.value = (data.colleges && data.colleges.length ? data.colleges : ['VIT Bibwewadi', 'VIT Kondhwa']).join('\n');
+        statusEl.textContent = 'Loaded.';
+      } catch (err) {
+        statusEl.textContent = err.message;
+      }
+    }
+
+    saveBtn.addEventListener('click', async () => {
+      statusEl.textContent = 'Saving...';
+      saveBtn.disabled = true;
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({
+            mode: modeInput.value,
+            colleges: collegesFromTextarea()
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to save settings');
+
+        modeInput.value = data.mode;
+        collegeList.value = data.colleges.join('\n');
+        statusEl.textContent = 'Saved.';
+      } catch (err) {
+        statusEl.textContent = err.message;
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    loadSettings();
+  </script>
+</body>
+</html>

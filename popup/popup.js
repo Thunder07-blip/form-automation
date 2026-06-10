@@ -1,27 +1,45 @@
 // ─── Onboarding Gate ────────────────────────────────────────────────────────
 const viewOnboard = document.getElementById("view-onboard");
+let currentUserTracked = false;
 
 function showOnboarding() {
+    currentUserTracked = false;
     document.getElementById("view-solve").classList.add("hidden-pane");
     document.getElementById("view-settings").classList.add("hidden-pane");
+    const profilePane = document.getElementById("view-profile");
+    if (profilePane) profilePane.classList.add("hidden-pane");
     viewOnboard.classList.remove("hidden-pane");
-    document.getElementById("toggle-settings-btn").style.display = "";
-        document.getElementById("toggle-settings-btn").innerHTML = `
-          <span class="material-symbols-outlined btn-icon" style="font-size:16px;">home</span>
-          <span class="btn-label">Home</span>
-        `;
+    document.getElementById("toggle-settings-btn").style.display = "none";
     document.querySelector('[data-icon="account_circle"]').style.display = "none";
 }
 
 function hideOnboarding() {
+    currentUserTracked = true;
     viewOnboard.classList.add("hidden-pane");
     document.getElementById("view-solve").classList.remove("hidden-pane");
     document.getElementById("toggle-settings-btn").style.display = "";
+    document.getElementById("toggle-settings-btn").innerHTML = `
+      <span class="material-symbols-outlined btn-icon" style="font-size:16px;">settings</span>
+      <span class="btn-label">Settings</span>
+    `;
     document.querySelector('[data-icon="account_circle"]').style.display = "";
 }
 
 chrome.storage.local.get(["formAI_user_id"], (res) => {
-    if (!res.formAI_user_id) showOnboarding();
+    if (!res.formAI_user_id) {
+        showOnboarding();
+        return;
+    }
+    currentUserTracked = true;
+
+    fetch(`https://form-automation-eight.vercel.app/api/user?id=${encodeURIComponent(res.formAI_user_id)}`)
+        .then(response => {
+            if (!response.ok) throw new Error("User not found");
+            currentUserTracked = true;
+        })
+        .catch(() => {
+            chrome.storage.local.remove("formAI_user_id", () => showOnboarding());
+        });
 });
 
 // ─── No API-Key Banner ────────────────────────────────────────────────────────
@@ -38,27 +56,27 @@ function checkAndShowNoKeyBanner() {
 checkAndShowNoKeyBanner();
 
 // ─── College Autocomplete ─────────────────────────────────────────────────────
-const COLLEGE_LIST = [
-    "IIT Bombay", "IIT Delhi", "IIT Madras", "IIT Kharagpur", "IIT Kanpur",
-    "IIT Roorkee", "IIT Guwahati", "IIT Hyderabad", "IIT Indore", "IIT Jodhpur",
-    "IIT Bhubaneswar", "IIT Gandhinagar", "IIT Patna", "IIT Ropar", "IIT Mandi",
-    "NIT Trichy", "NIT Warangal", "NIT Surathkal", "NIT Rourkela", "NIT Calicut",
-    "NIT Allahabad", "NIT Durgapur", "NIT Jaipur", "NIT Bhopal", "NIT Surat",
-    "BITS Pilani", "BITS Goa", "BITS Hyderabad",
-    "Anna University", "VIT Vellore", "SRM Institute", "Manipal Institute of Technology",
-    "Amity University", "Symbiosis Institute", "Pune University", "Mumbai University",
-    "Delhi University", "Jadavpur University", "Osmania University", "Hyderabad University",
-    "Jamia Millia Islamia", "AMU", "BHU", "IIIT Hyderabad", "IIIT Bangalore",
-    "IIIT Allahabad", "IIIT Delhi", "IIIT Gwalior", "DTU", "NSUT", "IGDTUW",
-    "Thapar University", "Chandigarh University", "LPU", "Chitkara University",
-    "Savitribai Phule Pune University", "COEP", "VJTI", "ICT Mumbai",
-    "PSG College of Technology", "SSN College", "SREC", "CEG Chennai",
-    "DSCE Bangalore", "RV College", "BMS College", "MSRIT", "PES University",
-    "JSS Academy", "Presidency University", "Vellore Institute of Technology",
-    "Kalinga Institute", "SOA University", "GIET University", "CV Raman University",
-    "GEC Thrissur", "Model Engineering College", "CUSAT", "NIT Calicut",
-    "Rajasthan Technical University", "Poornima College", "Government College of Engineering Pune"
+const LAUNCH_COLLEGE_LIST = ["VIT Bibwewadi", "VIT Kondhwa"];
+const FULL_COLLEGE_LIST = [
+    // Future scale mode: move the earlier broad list or a DB-backed catalog here.
 ];
+let collegeAutocompleteMode = "launch_allowlist";
+let activeCollegeList = [...LAUNCH_COLLEGE_LIST];
+
+async function loadCollegeAutocompleteConfig() {
+    try {
+        const res = await fetch("https://form-automation-eight.vercel.app/api/admin_colleges");
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to load colleges");
+
+        collegeAutocompleteMode = data.mode || "launch_allowlist";
+        const incoming = Array.isArray(data.colleges) ? data.colleges.filter(Boolean) : [];
+        activeCollegeList = incoming.length > 0 ? incoming : [...LAUNCH_COLLEGE_LIST];
+    } catch (err) {
+        collegeAutocompleteMode = "launch_allowlist";
+        activeCollegeList = [...LAUNCH_COLLEGE_LIST];
+    }
+}
 
 function initCollegeAutocomplete() {
     const input = document.getElementById("ob-college");
@@ -75,11 +93,13 @@ function initCollegeAutocomplete() {
         activeIndex = -1;
 
         const filtered = q.length > 0
-            ? COLLEGE_LIST.filter(c => c.toLowerCase().includes(q)).slice(0, 12)
-            : [];
+            ? activeCollegeList.filter(c => c.toLowerCase().includes(q)).slice(0, 12)
+            : activeCollegeList.slice(0, 12);
 
-        if (filtered.length === 0 && q.length === 0) {
-            dropdown.classList.add("hidden"); return;
+        if (filtered.length === 0) {
+            dropdown.innerHTML = `<li class="add-new">College not available for launch</li>`;
+            dropdown.classList.remove("hidden");
+            return;
         }
 
         filtered.forEach((college, i) => {
@@ -93,8 +113,8 @@ function initCollegeAutocomplete() {
             dropdown.appendChild(li);
         });
 
-        // "Add new college" option
-        if (q.length > 1) {
+        // Future scale mode: allow users to add a college when the admin enables it.
+        if (collegeAutocompleteMode === "open_catalog" && q.length > 1) {
             const li = document.createElement("li");
             li.className = "add-new";
             li.textContent = `+ Add "${query}"`;
@@ -111,7 +131,7 @@ function initCollegeAutocomplete() {
     }
 
     input.addEventListener("input", () => renderDropdown(input.value));
-    input.addEventListener("focus", () => { if (input.value.length > 0) renderDropdown(input.value); });
+    input.addEventListener("focus", () => renderDropdown(input.value));
     input.addEventListener("blur", () => setTimeout(() => dropdown.classList.add("hidden"), 150));
 
     input.addEventListener("keydown", (e) => {
@@ -208,7 +228,8 @@ function initCityAutocomplete() {
 }
 
 // ─── Onboarding Submit ────────────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+    await loadCollegeAutocompleteConfig();
     initCollegeAutocomplete();
     initCityAutocomplete();
 
@@ -223,9 +244,22 @@ document.addEventListener("DOMContentLoaded", () => {
             const city   = document.getElementById("ob-city").value.trim();
             const branch = document.getElementById("ob-branch").value.trim();
             const year   = document.getElementById("ob-year").value;
+            const gender = document.getElementById("ob-gender").value;
 
-            if (!name || !email || !college || !city || !branch || !year) {
+            if (!name || !email || !college || !city || !branch || !year || !gender) {
                 obError.textContent = "Please fill all fields.";
+                obError.classList.remove("hidden");
+                return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                obError.textContent = "Please enter a valid email address.";
+                obError.classList.remove("hidden");
+                return;
+            }
+            const collegeAllowed = activeCollegeList
+                .some(item => item.toLowerCase() === college.toLowerCase());
+            if (collegeAutocompleteMode !== "open_catalog" && !collegeAllowed) {
+                obError.textContent = "Please select VIT Bibwewadi or VIT Kondhwa for this launch test.";
                 obError.classList.remove("hidden");
                 return;
             }
@@ -238,7 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const res = await fetch("https://form-automation-eight.vercel.app/api/onboard", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name, email, college, city, branch, year })
+                    body: JSON.stringify({ name, email, college, city, branch, year, gender })
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || "Server error");
@@ -405,10 +439,17 @@ function popUpdateFieldCount(val) {
 
 let activeProviders = [{ vendor: "groq", key: "" }];
 
+function groqOnlyProviders(providers) {
+    const groqProvider = Array.isArray(providers)
+        ? providers.find(p => p.vendor === "groq" && p.key && p.key.trim() !== "")
+        : null;
+    return [{ vendor: "groq", key: groqProvider ? groqProvider.key : "" }];
+}
+
 // Load saved data and restore active solver state if running
 chrome.storage.local.get(["providerKeys", "userProfile", "solverState", "missingContextHandling"], (data) => {
     if (data.providerKeys && Array.isArray(data.providerKeys)) {
-        activeProviders = data.providerKeys;
+        activeProviders = groqOnlyProviders(data.providerKeys);
     }
     if (data.userProfile) profileInput.value = data.userProfile;
     if (data.missingContextHandling) {
@@ -494,53 +535,26 @@ function renderProviders() {
     activeProviders.forEach((prov, index) => {
         const row = document.createElement("div");
         row.className = "flex gap-2 items-center border-2 border-primary bg-background p-2";
-        row.draggable = true;
+        row.draggable = false;
         row.dataset.index = index;
 
         row.innerHTML = `
-            <span class="cursor-move material-symbols-outlined select-none text-primary/50 shrink-0" style="font-size: 20px;">drag_indicator</span>
+            <span class="material-symbols-outlined select-none text-tertiary shrink-0" style="font-size: 20px;">bolt</span>
             <select class="vendor-select border-2 border-primary bg-background text-sm font-bold uppercase p-1 focus:outline-none w-20 shrink-0">
-                <option value="groq" ${prov.vendor === 'groq' ? 'selected' : ''}>Groq</option>
-                <option value="openrouter" ${prov.vendor === 'openrouter' ? 'selected' : ''}>OpenRouter</option>
-                <option value="nvidia" ${prov.vendor === 'nvidia' ? 'selected' : ''}>NVIDIA NIM</option>
+                <option value="groq" selected>Groq</option>
+                <option value="openrouter" disabled>OpenRouter soon</option>
+                <option value="nvidia" disabled>NVIDIA soon</option>
             </select>
-            <input type="password" class="key-input flex-grow min-w-0 border-2 border-primary bg-background p-1 font-mono text-sm focus:outline-none placeholder:text-primary/40" placeholder="API Key..." value="${prov.key}">
-            <button class="remove-btn shrink-0 border-2 border-transparent hover:border-error text-error p-1 transition-all flex items-center justify-center"><span class="material-symbols-outlined" style="font-size: 18px;">close</span></button>
+            <input type="password" class="key-input flex-grow min-w-0 border-2 border-primary bg-background p-1 font-mono text-sm focus:outline-none placeholder:text-primary/40" placeholder="Groq API Key..." value="${prov.key}">
         `;
 
         // Event listeners for updating internal state
         row.querySelector(".vendor-select").addEventListener("change", (e) => {
-            activeProviders[index].vendor = e.target.value;
+            e.target.value = "groq";
+            activeProviders[index].vendor = "groq";
         });
         row.querySelector(".key-input").addEventListener("input", (e) => {
             activeProviders[index].key = e.target.value;
-        });
-        row.querySelector(".remove-btn").addEventListener("click", () => {
-            activeProviders.splice(index, 1);
-            if (activeProviders.length === 0) activeProviders.push({ vendor: "groq", key: "" });
-            renderProviders();
-        });
-
-        // Drag and drop mechanics
-        row.addEventListener("dragstart", (e) => {
-            row.classList.add("dragging");
-            e.dataTransfer.setData("text/plain", index);
-        });
-        row.addEventListener("dragend", () => {
-            row.classList.remove("dragging");
-        });
-        row.addEventListener("dragover", (e) => {
-            e.preventDefault();
-        });
-        row.addEventListener("drop", (e) => {
-            e.preventDefault();
-            const draggedIdx = parseInt(e.dataTransfer.getData("text/plain"));
-            const targetIdx = index;
-            if (draggedIdx === targetIdx) return;
-            
-            const movedItem = activeProviders.splice(draggedIdx, 1)[0];
-            activeProviders.splice(targetIdx, 0, movedItem);
-            renderProviders();
         });
 
         providerListEl.appendChild(row);
@@ -548,9 +562,9 @@ function renderProviders() {
 }
 
 addProviderBtn.addEventListener("click", () => {
-    activeProviders.push({ vendor: "openrouter", key: "" });
+    activeProviders = groqOnlyProviders(activeProviders);
     renderProviders();
-    writeLog("UI Action", "Added new provider row to settings.");
+    writeLog("UI Action", "Provider add is paused while Groq-only launch mode is active.");
 });
 
 toggleSettingsBtn.addEventListener("click", () => {
@@ -576,7 +590,7 @@ toggleSettingsBtn.addEventListener("click", () => {
 saveKeyBtn.addEventListener("click", () => {
     const profile = profileInput.value.trim();
     // Clean keys
-    const cleanProviders = activeProviders.filter(p => p.key.trim() !== "");
+    const cleanProviders = groqOnlyProviders(activeProviders).filter(p => p.key.trim() !== "");
     chrome.storage.local.set({ providerKeys: cleanProviders, userProfile: profile }, () => {
         writeLog("UI Action", `Saved provider and user profile configurations. Providers: ${cleanProviders.map(p => p.vendor).join(', ')}`);
         checkAndShowNoKeyBanner(); // Update the no-key banner immediately
@@ -591,9 +605,13 @@ saveKeyBtn.addEventListener("click", () => {
 
 solveBtn.addEventListener("click", () => {
     writeLog("UI Action", "Solve Form button clicked. Auto-saving provider keys & profile context.");
+    if (!currentUserTracked) {
+        showOnboarding();
+        return;
+    }
     // Auto-save any modified keys/profile inputs on click of Solve Form
     const profile = profileInput.value.trim();
-    const cleanProviders = activeProviders.filter(p => p.key.trim() !== "");
+    const cleanProviders = groqOnlyProviders(activeProviders).filter(p => p.key.trim() !== "");
     // (keys are saved in the callback below — see CRITICAL FIX)
 
     errorBox.style.display = "none";
@@ -746,6 +764,14 @@ function serializePairsToText() {
     return lines.join("\n");
 }
 
+function escapeAttr(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
 function renderProfileFormRows(pairs) {
     profileFormContainer.innerHTML = "";
     if (pairs.length === 0) {
@@ -758,11 +784,14 @@ function addProfileFormRow(key = "", value = "") {
     const row = document.createElement("div");
     row.className = "profile-form-row flex gap-1 items-center";
     row.innerHTML = `
-        <input type="text" class="row-key w-1/3 border-2 border-primary bg-background p-1 font-bold text-[10px] focus:outline-none placeholder:text-primary/40" placeholder="Key..." value="${key}">
-        <input type="text" class="row-value w-2/3 border-2 border-primary bg-background p-1 font-mono text-[10px] focus:outline-none placeholder:text-primary/40" placeholder="Value..." value="${value}">
+        <input type="text" class="row-key w-1/3 border-2 border-primary bg-background p-1 font-bold text-[10px] focus:outline-none placeholder:text-primary/40" placeholder="Field name" value="${escapeAttr(key)}">
+        <input type="text" class="row-value w-2/3 border-2 border-primary bg-background p-1 font-mono text-[10px] focus:outline-none" placeholder="Field value, e.g. jane@example.com" value="${escapeAttr(value)}">
         <button class="remove-row-btn shrink-0 border-2 border-transparent hover:border-error text-error p-0.5 transition-all flex items-center justify-center"><span class="material-symbols-outlined" style="font-size: 14px;">close</span></button>
     `;
-    row.querySelector(".remove-row-btn").addEventListener("click", () => row.remove());
+    row.querySelector(".remove-row-btn").addEventListener("click", () => {
+        row.remove();
+        if (isProfileFormMode) profileInputTextarea.value = serializePairsToText();
+    });
     // Auto sync on input
     row.querySelectorAll("input").forEach(inp => {
         inp.addEventListener("input", () => {
@@ -785,6 +814,8 @@ if (profileModeToggle) {
             renderProfileFormRows(pairs);
             
             profileInputTextarea.style.display = "none";
+            profileFormContainer.classList.remove("hidden");
+            addProfileRowBtn.classList.remove("hidden");
             profileFormContainer.style.display = "flex";
             addProfileRowBtn.style.display = "flex";
         } else {
@@ -798,6 +829,8 @@ if (profileModeToggle) {
             profileInputTextarea.style.display = "block";
             profileFormContainer.style.display = "none";
             addProfileRowBtn.style.display = "none";
+            profileFormContainer.classList.add("hidden");
+            addProfileRowBtn.classList.add("hidden");
         }
     });
 }
