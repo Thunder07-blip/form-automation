@@ -824,7 +824,7 @@ function toggleProfileEditMode() {
     isProfileEditMode = !isProfileEditMode;
     const inputs = document.querySelectorAll(".db-profile-input");
     inputs.forEach(inp => inp.disabled = !isProfileEditMode);
-    document.querySelectorAll(".db-profile-radio").forEach(r => r.disabled = !isProfileEditMode);
+    
     
     if (isProfileEditMode) {
         document.getElementById("edit-profile-icon").textContent = "close";
@@ -843,12 +843,7 @@ function toggleProfileEditMode() {
 
 if (editProfileBtn) editProfileBtn.addEventListener("click", toggleProfileEditMode);
 
-// Sync radio buttons to hidden input
-document.querySelectorAll(".db-profile-radio").forEach(radio => {
-    radio.addEventListener("change", (e) => {
-        document.getElementById("db-gender").value = e.target.value;
-    });
-});
+
 
 if (backProfileBtn) {
     backProfileBtn.addEventListener("click", () => {
@@ -896,11 +891,7 @@ async function loadDbProfile(userId) {
         document.getElementById("db-city").value = user.city || "";
         document.getElementById("db-branch").value = user.branch || "";
         document.getElementById("db-year").value = user.year || "";
-        const genderVal = user.gender || "";
-        document.getElementById("db-gender").value = genderVal;
-        document.querySelectorAll(".db-profile-radio").forEach(r => {
-            r.checked = (r.value === genderVal);
-        });
+        document.getElementById("db-gender").value = user.gender || "";
         document.getElementById("db-phone").value = user.phone || "";
         document.getElementById("db-dob").value = user.dob || "";
         document.getElementById("db-prn").value = user.prn || "";
@@ -1006,7 +997,7 @@ if(saveKeyBtnObj) {
 }
 
 
-const backProfileBtn = document.getElementById("back-profile-btn");
+const backProfileBtnNew = document.getElementById("back-profile-btn");
 if (backProfileBtn) {
     backProfileBtn.addEventListener("click", () => {
         const viewProfilePane = document.getElementById("view-profile");

@@ -262,6 +262,19 @@
               </div>
             </div>
 
+            
+            <!-- Gender row -->
+            <div class="mb-3">
+              <label class="block font-black uppercase text-[10px] mb-1 flex items-center gap-1">
+                <span class="material-symbols-outlined" style="font-size:12px;">person</span> Gender
+              </label>
+              <select id="ob-gender" class="w-full p-2.5 border-4 border-primary bg-background font-bold text-sm focus:outline-none focus:bg-surface-variant transition-colors cursor-pointer appearance-none">
+                <option value="" disabled selected>Select</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Non-Binary">Other</option>
+              </select>
+            </div>
             <!-- Error message -->
             <div id="ob-error" class="hidden text-error font-black text-[10px] uppercase tracking-widest"></div>
 
@@ -375,24 +388,9 @@
               </div>
 
               <!-- Gender Selection -->
-              <div class="group pt-2">
-                <label class="block font-headline font-black uppercase text-[10px] tracking-widest mb-2">10. Gender Identity</label>
-                <!-- We hide the actual value in a hidden input so the JS logic works the exact same way -->
-                <input type="hidden" id="db-gender" class="db-profile-input">
-                <div class="flex gap-2" id="db-gender-radios">
-                  <label class="flex-1 cursor-pointer">
-                    <input class="db-profile-radio sr-only peer" name="gender-ui" type="radio" value="Male" disabled>
-                    <div class="border-4 border-primary/40 peer-disabled:opacity-60 peer-not-disabled:border-primary p-2 text-center font-headline font-black uppercase text-[10px] peer-checked:bg-primary peer-checked:text-background peer-checked:border-primary transition-all">Male</div>
-                  </label>
-                  <label class="flex-1 cursor-pointer">
-                    <input class="db-profile-radio sr-only peer" name="gender-ui" type="radio" value="Female" disabled>
-                    <div class="border-4 border-primary/40 peer-disabled:opacity-60 peer-not-disabled:border-primary p-2 text-center font-headline font-black uppercase text-[10px] peer-checked:bg-primary peer-checked:text-background peer-checked:border-primary transition-all">Female</div>
-                  </label>
-                  <label class="flex-1 cursor-pointer">
-                    <input class="db-profile-radio sr-only peer" name="gender-ui" type="radio" value="Non-Binary" disabled>
-                    <div class="border-4 border-primary/40 peer-disabled:opacity-60 peer-not-disabled:border-primary p-2 text-center font-headline font-black uppercase text-[10px] peer-checked:bg-primary peer-checked:text-background peer-checked:border-primary transition-all">Other</div>
-                  </label>
-                </div>
+              <div class="group">
+                <label class="block font-headline font-black uppercase text-[10px] tracking-widest mb-1">10. Gender Identity</label>
+                <input id="db-gender" class="db-profile-input w-full bg-transparent border-b-4 border-primary py-2 text-sm font-headline font-bold focus:outline-none focus:border-secondary transition-colors disabled:opacity-60 disabled:border-primary/40 disabled:text-primary/70 uppercase" type="text" disabled>
               </div>
 
               <div id="db-error" class="hidden text-error font-black text-[10px] uppercase tracking-widest mt-2 border-l-4 border-error pl-2"></div>
