@@ -5,7 +5,7 @@ function showOnboarding() {
     document.getElementById("view-solve").classList.add("hidden-pane");
     document.getElementById("view-settings").classList.add("hidden-pane");
     viewOnboard.classList.remove("hidden-pane");
-    document.getElementById("toggle-settings-btn").style.display = "none";
+    document.getElementById("toggle-settings-btn").style.display = "";\n        document.getElementById("toggle-settings-btn").innerHTML = `\n          <span class="material-symbols-outlined btn-icon" style="font-size:16px;">home</span>\n          <span class="btn-label">Home</span>\n        `;
     document.querySelector('[data-icon="account_circle"]').style.display = "none";
 }
 
@@ -825,12 +825,12 @@ function toggleProfileEditMode() {
         document.getElementById("edit-profile-icon").textContent = "close";
         document.getElementById("edit-profile-text").textContent = "Cancel";
         dbSaveContainer.classList.remove("hidden");
-        document.getElementById("db-back-container").classList.add("hidden");
+        // removed db-back-container
     } else {
         document.getElementById("edit-profile-icon").textContent = "edit";
         document.getElementById("edit-profile-text").textContent = "Edit";
         dbSaveContainer.classList.add("hidden");
-        document.getElementById("db-back-container").classList.remove("hidden");
+        // removed db-back-container
         // Reload data to cancel changes
         if (currentDbUserId) loadDbProfile(currentDbUserId);
     }
@@ -947,7 +947,20 @@ oldToggleSettingsListener.addEventListener("click", () => {
     const viewSettings = document.getElementById("view-settings");
     const isSettingsHidden = viewSettings.classList.contains('hidden-pane');
     const viewSolve = document.getElementById("view-solve");
-    if (isSettingsHidden) {
+    const viewProfilePane = document.getElementById("view-profile");
+    const isProfileHidden = viewProfilePane.classList.contains('hidden-pane');
+
+    if (!isProfileHidden) {
+        viewProfilePane.classList.add('hidden-pane');
+        viewSolve.classList.remove('hidden-pane');
+        oldToggleSettingsListener.innerHTML = `
+          <span class="material-symbols-outlined btn-icon" style="font-size:16px;">settings</span>
+          <span class="btn-label">Settings</span>
+        `;
+        document.getElementById("open-profile-btn").style.display = "";
+        if (typeof isProfileEditMode !== 'undefined' && isProfileEditMode) toggleProfileEditMode();
+        return;
+    }\n\n    if (isSettingsHidden) {
         viewSolve.classList.add('hidden-pane');
         viewSettings.classList.remove('hidden-pane');
         oldToggleSettingsListener.innerHTML = `
