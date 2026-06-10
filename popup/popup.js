@@ -894,9 +894,6 @@ async function loadDbProfile(userId) {
         document.getElementById("db-branch").value = user.branch || "";
         document.getElementById("db-year").value = user.year || "";
         document.getElementById("db-gender").value = user.gender || "";
-        document.getElementById("db-phone").value = user.phone || "";
-        document.getElementById("db-dob").value = user.dob || "";
-        document.getElementById("db-prn").value = user.prn || "";
         
     } catch (err) {
         dbError.textContent = err.message;
@@ -922,10 +919,7 @@ if (saveProfileBtn) {
             city: document.getElementById("db-city").value.trim(),
             branch: document.getElementById("db-branch").value.trim(),
             year: document.getElementById("db-year").value.trim(),
-            gender: document.getElementById("db-gender").value.trim(),
-            phone: document.getElementById("db-phone").value.trim(),
-            dob: document.getElementById("db-dob").value.trim(),
-            prn: document.getElementById("db-prn").value.trim()
+            gender: document.getElementById("db-gender").value.trim()
         };
         
         try {
@@ -967,6 +961,7 @@ oldToggleSettingsListener.addEventListener("click", () => {
           <span class="btn-label">Settings</span>
         `;
         document.getElementById("open-profile-btn").style.display = "";
+        if (backProfileBtn) backProfileBtn.classList.add("hidden");
         if (typeof isProfileEditMode !== 'undefined' && isProfileEditMode) toggleProfileEditMode();
         return;
     }
