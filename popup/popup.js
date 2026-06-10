@@ -964,7 +964,9 @@ oldToggleSettingsListener.addEventListener("click", () => {
         document.getElementById("open-profile-btn").style.display = "";
         if (typeof isProfileEditMode !== 'undefined' && isProfileEditMode) toggleProfileEditMode();
         return;
-    }\n\n    if (isSettingsHidden) {
+    }
+
+    if (isSettingsHidden) {
         viewSolve.classList.add('hidden-pane');
         viewSettings.classList.remove('hidden-pane');
         oldToggleSettingsListener.innerHTML = `
