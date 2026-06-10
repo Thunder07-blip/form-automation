@@ -1004,3 +1004,28 @@ if(saveKeyBtnObj) {
         document.getElementById("open-profile-btn").style.display = "";
     });
 }
+
+
+const backProfileBtn = document.getElementById("back-profile-btn");
+if (backProfileBtn) {
+    backProfileBtn.addEventListener("click", () => {
+        const viewProfilePane = document.getElementById("view-profile");
+        const viewSolve = document.getElementById("view-solve");
+        
+        viewProfilePane.classList.add('hidden-pane');
+        viewSolve.classList.remove('hidden-pane');
+        
+        const oldToggleSettingsListener = document.getElementById("toggle-settings-btn");
+        if (oldToggleSettingsListener) {
+            oldToggleSettingsListener.innerHTML = `
+              <span class="material-symbols-outlined btn-icon" style="font-size:16px;">settings</span>
+              <span class="btn-label">Settings</span>
+            `;
+        }
+        document.getElementById("open-profile-btn").style.display = "";
+        
+        if (typeof isProfileEditMode !== 'undefined' && isProfileEditMode) {
+            toggleProfileEditMode();
+        }
+    });
+}

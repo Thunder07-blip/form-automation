@@ -296,10 +296,16 @@
               </h1>
               <div class="absolute -top-2 -right-3 w-6 h-6 bg-secondary border-4 border-primary rotate-12"></div>
             </div>
-            <button id="edit-profile-btn" class="text-primary border-2 border-primary px-3 py-1 font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none bg-background hover:bg-surface-variant">
-              <span class="material-symbols-outlined" style="font-size:14px;" id="edit-profile-icon">edit</span>
-              <span id="edit-profile-text">Edit</span>
-            </button>
+            <div class="flex flex-col gap-2 items-end">
+              <button id="back-profile-btn" class="bg-primary-container text-primary border-2 border-primary px-3 py-1 font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:bg-primary-fixed">
+                <span class="material-symbols-outlined" style="font-size:14px;">arrow_back</span>
+                <span>BACK TO HOME</span>
+              </button>
+              <button id="edit-profile-btn" class="text-primary border-2 border-primary px-3 py-1 font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none bg-background hover:bg-surface-variant w-full justify-center">
+                <span class="material-symbols-outlined" style="font-size:14px;" id="edit-profile-icon">edit</span>
+                <span id="edit-profile-text">EDIT</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -374,42 +380,23 @@
                 <!-- We hide the actual value in a hidden input so the JS logic works the exact same way -->
                 <input type="hidden" id="db-gender" class="db-profile-input">
                 <div class="flex gap-2" id="db-gender-radios">
-                  <label class="flex-1">
-                    <input class="db-profile-radio hidden peer" name="gender-ui" type="radio" value="Male" disabled>
-                    <div class="border-4 border-primary/40 peer-disabled:opacity-60 peer-not-disabled:border-primary p-2 text-center font-headline font-black uppercase text-[10px] cursor-pointer peer-checked:bg-primary peer-checked:text-background peer-checked:border-primary transition-all">Male</div>
+                  <label class="flex-1 cursor-pointer">
+                    <input class="db-profile-radio sr-only peer" name="gender-ui" type="radio" value="Male" disabled>
+                    <div class="border-4 border-primary/40 peer-disabled:opacity-60 peer-not-disabled:border-primary p-2 text-center font-headline font-black uppercase text-[10px] peer-checked:bg-primary peer-checked:text-background peer-checked:border-primary transition-all">Male</div>
                   </label>
-                  <label class="flex-1">
-                    <input class="db-profile-radio hidden peer" name="gender-ui" type="radio" value="Female" disabled>
-                    <div class="border-4 border-primary/40 peer-disabled:opacity-60 peer-not-disabled:border-primary p-2 text-center font-headline font-black uppercase text-[10px] cursor-pointer peer-checked:bg-primary peer-checked:text-background peer-checked:border-primary transition-all">Female</div>
+                  <label class="flex-1 cursor-pointer">
+                    <input class="db-profile-radio sr-only peer" name="gender-ui" type="radio" value="Female" disabled>
+                    <div class="border-4 border-primary/40 peer-disabled:opacity-60 peer-not-disabled:border-primary p-2 text-center font-headline font-black uppercase text-[10px] peer-checked:bg-primary peer-checked:text-background peer-checked:border-primary transition-all">Female</div>
                   </label>
-                  <label class="flex-1">
-                    <input class="db-profile-radio hidden peer" name="gender-ui" type="radio" value="Non-Binary" disabled>
-                    <div class="border-4 border-primary/40 peer-disabled:opacity-60 peer-not-disabled:border-primary p-2 text-center font-headline font-black uppercase text-[10px] cursor-pointer peer-checked:bg-primary peer-checked:text-background peer-checked:border-primary transition-all">Other</div>
+                  <label class="flex-1 cursor-pointer">
+                    <input class="db-profile-radio sr-only peer" name="gender-ui" type="radio" value="Non-Binary" disabled>
+                    <div class="border-4 border-primary/40 peer-disabled:opacity-60 peer-not-disabled:border-primary p-2 text-center font-headline font-black uppercase text-[10px] peer-checked:bg-primary peer-checked:text-background peer-checked:border-primary transition-all">Other</div>
                   </label>
                 </div>
               </div>
 
               <div id="db-error" class="hidden text-error font-black text-[10px] uppercase tracking-widest mt-2 border-l-4 border-error pl-2"></div>
             </form>
-
-            <!-- Auxiliary Information -->
-            <div class="bg-tertiary-container border-4 border-primary p-4 mt-6 space-y-3">
-              <h3 class="font-headline font-black uppercase text-sm tracking-tighter">Extension Stats</h3>
-              <div class="space-y-2">
-                <div class="flex justify-between border-b-2 border-primary/20 pb-1">
-                  <span class="font-bold uppercase text-[10px] opacity-70">Uptime</span>
-                  <span class="font-black text-xs">124.5H</span>
-                </div>
-                <div class="flex justify-between border-b-2 border-primary/20 pb-1">
-                  <span class="font-bold uppercase text-[10px] opacity-70">Queries</span>
-                  <span class="font-black text-xs">2,491</span>
-                </div>
-                <div class="flex justify-between border-b-2 border-primary/20 pb-1">
-                  <span class="font-bold uppercase text-[10px] opacity-70">Efficiency</span>
-                  <span class="font-black text-xs">98.2%</span>
-                </div>
-              </div>
-            </div>
 
             <!-- Abstract Visual -->
             <div class="h-12 border-4 border-primary flex mt-6">
