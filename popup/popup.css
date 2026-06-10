@@ -1514,3 +1514,21 @@ header {
   color: rgba(26, 26, 26, 0.3);
 }
 
+
+
+/* ── Profile Input Neo-Brutalist Formatting Fixes ──────────────────────── */
+
+.db-profile-input {
+  padding-bottom: 8px !important;
+  padding-top: 8px !important;
+  margin-top: 4px !important;
+  line-height: 1.2 !important;
+}
+
+.db-profile-radio {
+  display: none !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+}
