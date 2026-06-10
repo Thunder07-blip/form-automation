@@ -30,7 +30,7 @@
           <span class="material-symbols-outlined btn-icon" style="font-size:16px;">settings</span>
           <span class="btn-label">Settings</span>
         </button>
-        <span class="material-symbols-outlined text-3xl cursor-pointer hover:scale-110 transition-transform" data-icon="account_circle">account_circle</span>
+        <span id="open-profile-btn" class="material-symbols-outlined text-3xl cursor-pointer hover:scale-110 transition-transform" data-icon="account_circle">account_circle</span>
       </div>
     </header>
     
@@ -144,11 +144,28 @@
             </div>
             
             <div>
-              <label class="block font-black uppercase text-xs mb-2 flex items-center gap-1">
-                <span class="material-symbols-outlined" style="font-size:14px;">person</span>
-                Personal Profile
+              <label class="block font-black uppercase text-xs mb-2 flex items-center justify-between gap-1">
+                <div class="flex items-center gap-1">
+                  <span class="material-symbols-outlined" style="font-size:14px;">person</span>
+                  Personal Profile
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[9px] uppercase font-bold opacity-60" id="profile-mode-label">Textbox</span>
+                  <button id="profile-mode-toggle" class="relative inline-flex h-4 w-8 items-center rounded-full bg-surface-variant border-2 border-primary transition-colors focus:outline-none">
+                    <span id="profile-mode-thumb" class="inline-block h-2 w-2 transform rounded-full bg-primary transition-transform translate-x-1"></span>
+                  </button>
+                </div>
               </label>
+              
               <textarea id="profile-input" class="w-full h-28 p-2 border-4 border-primary bg-background focus:outline-none font-mono text-xs resize-none leading-relaxed" placeholder="Email: user@example.com&#10;Roll No: 12&#10;Name: Jane Doe&#10;Year: 3rd"></textarea>
+              
+              <div id="profile-form-container" class="hidden flex-col gap-2 w-full h-28 overflow-y-auto p-2 border-4 border-primary bg-background text-xs">
+                 <!-- Rows injected via JS -->
+              </div>
+              <button id="add-profile-row-btn" class="hidden w-full mt-2 border-2 border-primary border-dashed p-1 font-headline font-bold uppercase bg-background hover:bg-surface-variant transition-all text-[10px] flex items-center justify-center gap-1">
+                <span class="material-symbols-outlined" style="font-size:12px;">add</span> Add Field
+              </button>
+
               <p class="text-[9px] opacity-50 font-bold uppercase mt-1">One field per line. AI will match these to form fields automatically.</p>
             </div>
           </div>
@@ -257,6 +274,96 @@
           <button id="ob-submit-btn" class="w-full border-4 border-primary p-3 font-headline font-black text-lg uppercase bg-primary-container hover:bg-primary hover:text-primary-fixed transition-all neo-shadow active:translate-x-1 active:translate-y-1 active:shadow-[1px_1px_0px_0px_#1a1a1a] flex items-center justify-center gap-2">
             <span class="material-symbols-outlined" style="font-size:20px;">arrow_forward</span>
             Let's Go!
+          </button>
+        </div>
+
+      </div>
+
+      <!-- ══════════════════════════════════════════ -->
+      <!-- View: Profile (DB View) -->
+      <!-- ══════════════════════════════════════════ -->
+      <div class="view-pane hidden-pane flex flex-col h-full" id="view-profile">
+
+        <div class="px-5 py-3 border-b-4 border-primary bg-background shrink-0 flex justify-between items-center">
+          <div>
+            <h2 class="font-display font-black text-2xl uppercase tracking-tighter">My Account</h2>
+            <p class="text-[9px] font-bold uppercase opacity-50">Database Profile</p>
+          </div>
+          <button id="edit-profile-btn" class="text-primary border-2 border-primary px-3 py-1 font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none bg-background hover:bg-surface-variant">
+            <span class="material-symbols-outlined" style="font-size:14px;" id="edit-profile-icon">edit</span>
+            <span id="edit-profile-text">Edit</span>
+          </button>
+        </div>
+
+        <div class="flex-grow overflow-y-auto p-5 space-y-4 relative">
+          <!-- Loading overlay -->
+          <div id="db-profile-loading" class="absolute inset-0 bg-background/80 flex items-center justify-center z-10 hidden">
+             <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+          </div>
+
+          <div class="bg-primary-container border-4 border-primary neo-shadow p-4 space-y-3" id="db-profile-form">
+            <div>
+              <label class="block font-black uppercase text-[10px] mb-1">Full Name</label>
+              <input type="text" id="db-name" class="db-profile-input w-full p-2 border-2 border-primary bg-background font-bold text-xs focus:outline-none focus:bg-surface-variant transition-colors disabled:opacity-60" disabled>
+            </div>
+            <div>
+              <label class="block font-black uppercase text-[10px] mb-1">Email</label>
+              <input type="email" id="db-email" class="db-profile-input w-full p-2 border-2 border-primary bg-background font-bold text-xs focus:outline-none focus:bg-surface-variant transition-colors disabled:opacity-60" disabled>
+            </div>
+            <div>
+              <label class="block font-black uppercase text-[10px] mb-1">College</label>
+              <input type="text" id="db-college" class="db-profile-input w-full p-2 border-2 border-primary bg-background font-bold text-xs focus:outline-none focus:bg-surface-variant transition-colors disabled:opacity-60" disabled>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-black uppercase text-[10px] mb-1">City</label>
+                <input type="text" id="db-city" class="db-profile-input w-full p-2 border-2 border-primary bg-background font-bold text-xs focus:outline-none focus:bg-surface-variant transition-colors disabled:opacity-60" disabled>
+              </div>
+              <div>
+                <label class="block font-black uppercase text-[10px] mb-1">Branch</label>
+                <input type="text" id="db-branch" class="db-profile-input w-full p-2 border-2 border-primary bg-background font-bold text-xs focus:outline-none focus:bg-surface-variant transition-colors disabled:opacity-60" disabled>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-black uppercase text-[10px] mb-1">Year</label>
+                <input type="text" id="db-year" class="db-profile-input w-full p-2 border-2 border-primary bg-background font-bold text-xs focus:outline-none focus:bg-surface-variant transition-colors disabled:opacity-60" disabled>
+              </div>
+              <div>
+                <label class="block font-black uppercase text-[10px] mb-1">Gender</label>
+                <input type="text" id="db-gender" class="db-profile-input w-full p-2 border-2 border-primary bg-background font-bold text-xs focus:outline-none focus:bg-surface-variant transition-colors disabled:opacity-60" disabled>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-black uppercase text-[10px] mb-1">Phone</label>
+                <input type="text" id="db-phone" class="db-profile-input w-full p-2 border-2 border-primary bg-background font-bold text-xs focus:outline-none focus:bg-surface-variant transition-colors disabled:opacity-60" disabled>
+              </div>
+              <div>
+                <label class="block font-black uppercase text-[10px] mb-1">DOB</label>
+                <input type="text" id="db-dob" class="db-profile-input w-full p-2 border-2 border-primary bg-background font-bold text-xs focus:outline-none focus:bg-surface-variant transition-colors disabled:opacity-60" disabled>
+              </div>
+            </div>
+            <div>
+              <label class="block font-black uppercase text-[10px] mb-1">PRN / ID</label>
+              <input type="text" id="db-prn" class="db-profile-input w-full p-2 border-2 border-primary bg-background font-bold text-xs focus:outline-none focus:bg-surface-variant transition-colors disabled:opacity-60" disabled>
+            </div>
+            
+            <div id="db-error" class="hidden text-error font-black text-[10px] uppercase tracking-widest mt-2"></div>
+          </div>
+        </div>
+
+        <div id="db-save-container" class="shrink-0 p-4 border-t-4 border-primary bg-background hidden">
+          <button id="save-profile-btn" class="w-full border-4 border-primary p-3 font-headline font-black text-lg uppercase bg-primary text-background hover:bg-secondary hover:border-secondary transition-all neo-shadow active:translate-x-1 active:translate-y-1 active:shadow-[1px_1px_0px_0px_#1a1a1a] flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined" style="font-size:20px;">save</span>
+            Save Changes
+          </button>
+        </div>
+
+        <div id="db-back-container" class="shrink-0 p-4 border-t-4 border-primary bg-background">
+          <button id="back-profile-btn" class="w-full border-4 border-primary p-3 font-headline font-black text-lg uppercase bg-background text-primary hover:bg-surface-variant transition-all neo-shadow active:translate-x-1 active:translate-y-1 active:shadow-[1px_1px_0px_0px_#1a1a1a] flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined" style="font-size:20px;">arrow_back</span>
+            Back to Home
           </button>
         </div>
 

@@ -706,3 +706,265 @@ function escapeCSVCell(value) {
     return `"${escaped}"`;
 }
 
+
+
+// ─── Profile Mode Toggle (Textbox vs Form) ────────────────────────────────────
+const profileModeToggle = document.getElementById("profile-mode-toggle");
+const profileModeThumb = document.getElementById("profile-mode-thumb");
+const profileModeLabel = document.getElementById("profile-mode-label");
+const profileInputTextarea = document.getElementById("profile-input");
+const profileFormContainer = document.getElementById("profile-form-container");
+const addProfileRowBtn = document.getElementById("add-profile-row-btn");
+
+let isProfileFormMode = false;
+const DEFAULT_FORM_KEYS = ["Name", "Email", "Phone Number", "Branch", "Division", "PRN", "DOB", "Gender"];
+
+function parseProfileTextToPairs(text) {
+    if (!text || !text.trim()) return [];
+    return text.split("\n").map(line => {
+        const colonIdx = line.indexOf(":");
+        if (colonIdx === -1) return { key: line.trim(), value: "" };
+        return {
+            key: line.slice(0, colonIdx).trim(),
+            value: line.slice(colonIdx + 1).trim()
+        };
+    }).filter(p => p.key);
+}
+
+function serializePairsToText() {
+    const rows = profileFormContainer.querySelectorAll(".profile-form-row");
+    let lines = [];
+    rows.forEach(row => {
+        const key = row.querySelector(".row-key").value.trim();
+        const val = row.querySelector(".row-value").value.trim();
+        if (key) lines.push(`${key}: ${val}`);
+    });
+    return lines.join("\n");
+}
+
+function renderProfileFormRows(pairs) {
+    profileFormContainer.innerHTML = "";
+    if (pairs.length === 0) {
+        pairs = DEFAULT_FORM_KEYS.map(k => ({ key: k, value: "" }));
+    }
+    pairs.forEach(p => addProfileFormRow(p.key, p.value));
+}
+
+function addProfileFormRow(key = "", value = "") {
+    const row = document.createElement("div");
+    row.className = "profile-form-row flex gap-1 items-center";
+    row.innerHTML = `
+        <input type="text" class="row-key w-1/3 border-2 border-primary bg-background p-1 font-bold text-[10px] focus:outline-none placeholder:text-primary/40" placeholder="Key..." value="${key}">
+        <input type="text" class="row-value w-2/3 border-2 border-primary bg-background p-1 font-mono text-[10px] focus:outline-none placeholder:text-primary/40" placeholder="Value..." value="${value}">
+        <button class="remove-row-btn shrink-0 border-2 border-transparent hover:border-error text-error p-0.5 transition-all flex items-center justify-center"><span class="material-symbols-outlined" style="font-size: 14px;">close</span></button>
+    `;
+    row.querySelector(".remove-row-btn").addEventListener("click", () => row.remove());
+    // Auto sync on input
+    row.querySelectorAll("input").forEach(inp => {
+        inp.addEventListener("input", () => {
+            if (isProfileFormMode) profileInputTextarea.value = serializePairsToText();
+        });
+    });
+    profileFormContainer.appendChild(row);
+}
+
+if (profileModeToggle) {
+    profileModeToggle.addEventListener("click", () => {
+        isProfileFormMode = !isProfileFormMode;
+        if (isProfileFormMode) {
+            // Switch to Form Mode
+            profileModeThumb.classList.remove("translate-x-1");
+            profileModeThumb.classList.add("translate-x-5");
+            profileModeLabel.textContent = "Form";
+            
+            const pairs = parseProfileTextToPairs(profileInputTextarea.value);
+            renderProfileFormRows(pairs);
+            
+            profileInputTextarea.classList.add("hidden");
+            profileFormContainer.classList.remove("hidden");
+            profileFormContainer.classList.add("flex");
+            addProfileRowBtn.classList.remove("hidden");
+        } else {
+            // Switch to Textbox Mode
+            profileModeThumb.classList.remove("translate-x-5");
+            profileModeThumb.classList.add("translate-x-1");
+            profileModeLabel.textContent = "Textbox";
+            
+            profileInputTextarea.value = serializePairsToText();
+            
+            profileInputTextarea.classList.remove("hidden");
+            profileFormContainer.classList.add("hidden");
+            profileFormContainer.classList.remove("flex");
+            addProfileRowBtn.classList.add("hidden");
+        }
+    });
+}
+
+if (addProfileRowBtn) {
+    addProfileRowBtn.addEventListener("click", () => addProfileFormRow());
+}
+
+// ─── Profile DB View Logic ────────────────────────────────────────────────────
+const openProfileBtn = document.getElementById("open-profile-btn");
+const viewProfilePane = document.getElementById("view-profile");
+const backProfileBtn = document.getElementById("back-profile-btn");
+const editProfileBtn = document.getElementById("edit-profile-btn");
+const saveProfileBtn = document.getElementById("save-profile-btn");
+const dbProfileLoading = document.getElementById("db-profile-loading");
+const dbSaveContainer = document.getElementById("db-save-container");
+const dbError = document.getElementById("db-error");
+
+let isProfileEditMode = false;
+let currentDbUserId = null;
+
+function toggleProfileEditMode() {
+    isProfileEditMode = !isProfileEditMode;
+    const inputs = document.querySelectorAll(".db-profile-input");
+    inputs.forEach(inp => inp.disabled = !isProfileEditMode);
+    
+    if (isProfileEditMode) {
+        document.getElementById("edit-profile-icon").textContent = "close";
+        document.getElementById("edit-profile-text").textContent = "Cancel";
+        dbSaveContainer.classList.remove("hidden");
+    } else {
+        document.getElementById("edit-profile-icon").textContent = "edit";
+        document.getElementById("edit-profile-text").textContent = "Edit";
+        dbSaveContainer.classList.add("hidden");
+        // Reload data to cancel changes
+        if (currentDbUserId) loadDbProfile(currentDbUserId);
+    }
+}
+
+if (editProfileBtn) editProfileBtn.addEventListener("click", toggleProfileEditMode);
+
+if (backProfileBtn) {
+    backProfileBtn.addEventListener("click", () => {
+        viewProfilePane.classList.add("hidden-pane");
+        document.getElementById("view-solve").classList.remove("hidden-pane");
+        document.getElementById("toggle-settings-btn").style.display = "";
+        document.getElementById("open-profile-btn").style.display = "";
+        if (isProfileEditMode) toggleProfileEditMode(); // reset edit mode
+    });
+}
+
+if (openProfileBtn) {
+    openProfileBtn.addEventListener("click", () => {
+        document.getElementById("view-solve").classList.add("hidden-pane");
+        document.getElementById("view-settings").classList.add("hidden-pane");
+        viewProfilePane.classList.remove("hidden-pane");
+        document.getElementById("toggle-settings-btn").style.display = "none";
+        document.getElementById("open-profile-btn").style.display = "none";
+        
+        chrome.storage.local.get(["formAI_user_id"], (res) => {
+            if (res.formAI_user_id) {
+                currentDbUserId = res.formAI_user_id;
+                loadDbProfile(currentDbUserId);
+            } else {
+                dbError.textContent = "No user ID found. Please reinstall or complete onboarding.";
+                dbError.classList.remove("hidden");
+            }
+        });
+    });
+}
+
+async function loadDbProfile(userId) {
+    dbProfileLoading.classList.remove("hidden");
+    dbError.classList.add("hidden");
+    try {
+        const res = await fetch(`https://form-automation-eight.vercel.app/api/user?id=${userId}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to load profile");
+        
+        const user = data.user;
+        document.getElementById("db-name").value = user.name || "";
+        document.getElementById("db-email").value = user.email || "";
+        document.getElementById("db-college").value = user.college || "";
+        document.getElementById("db-city").value = user.city || "";
+        document.getElementById("db-branch").value = user.branch || "";
+        document.getElementById("db-year").value = user.year || "";
+        document.getElementById("db-gender").value = user.gender || "";
+        document.getElementById("db-phone").value = user.phone || "";
+        document.getElementById("db-dob").value = user.dob || "";
+        document.getElementById("db-prn").value = user.prn || "";
+        
+    } catch (err) {
+        dbError.textContent = err.message;
+        dbError.classList.remove("hidden");
+    } finally {
+        dbProfileLoading.classList.add("hidden");
+    }
+}
+
+if (saveProfileBtn) {
+    saveProfileBtn.addEventListener("click", async () => {
+        if (!currentDbUserId) return;
+        dbError.classList.add("hidden");
+        dbProfileLoading.classList.remove("hidden");
+        
+        const payload = {
+            id: currentDbUserId,
+            name: document.getElementById("db-name").value.trim(),
+            email: document.getElementById("db-email").value.trim(),
+            college: document.getElementById("db-college").value.trim(),
+            city: document.getElementById("db-city").value.trim(),
+            branch: document.getElementById("db-branch").value.trim(),
+            year: document.getElementById("db-year").value.trim(),
+            gender: document.getElementById("db-gender").value.trim(),
+            phone: document.getElementById("db-phone").value.trim(),
+            dob: document.getElementById("db-dob").value.trim(),
+            prn: document.getElementById("db-prn").value.trim()
+        };
+        
+        try {
+            const res = await fetch("https://form-automation-eight.vercel.app/api/user", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to save profile");
+            
+            toggleProfileEditMode(); // Exit edit mode
+        } catch (err) {
+            dbError.textContent = err.message;
+            dbError.classList.remove("hidden");
+        } finally {
+            dbProfileLoading.classList.add("hidden");
+        }
+    });
+}
+
+// Ensure toggle settings btn resets open profile btn display if needed
+const originalToggleSettings = toggleSettingsBtn.onclick; // not used directly, it uses event listener, so we just patch the logic slightly
+const oldToggleSettingsListener = toggleSettingsBtn.cloneNode(true);
+toggleSettingsBtn.parentNode.replaceChild(oldToggleSettingsListener, toggleSettingsBtn);
+oldToggleSettingsListener.addEventListener("click", () => {
+    const viewSettings = document.getElementById("view-settings");
+    const isSettingsHidden = viewSettings.classList.contains('hidden-pane');
+    const viewSolve = document.getElementById("view-solve");
+    if (isSettingsHidden) {
+        viewSolve.classList.add('hidden-pane');
+        viewSettings.classList.remove('hidden-pane');
+        oldToggleSettingsListener.innerHTML = `
+          <span class="material-symbols-outlined btn-icon" style="font-size:16px;">home</span>
+          <span class="btn-label">Home</span>
+        `;
+        document.getElementById("open-profile-btn").style.display = "none";
+    } else {
+        viewSolve.classList.remove('hidden-pane');
+        viewSettings.classList.add('hidden-pane');
+        oldToggleSettingsListener.innerHTML = `
+          <span class="material-symbols-outlined btn-icon" style="font-size:16px;">settings</span>
+          <span class="btn-label">Settings</span>
+        `;
+        document.getElementById("open-profile-btn").style.display = "";
+    }
+});
+
+// Update saveKeyBtn logic slightly to restore open-profile-btn display
+const saveKeyBtnObj = document.getElementById("save-key-btn");
+if(saveKeyBtnObj) {
+    saveKeyBtnObj.addEventListener("click", () => {
+        document.getElementById("open-profile-btn").style.display = "";
+    });
+}

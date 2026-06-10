@@ -1116,6 +1116,14 @@ video {
   transform: translate(3px, 3px);
 }
 
+.translate-x-1 {
+  transform: translateX(0.25rem);
+}
+
+.translate-x-5 {
+  transform: translateX(1.25rem);
+}
+
 /* ── Material Icons ────────────────────────────────────────────── */
 
 .material-symbols-outlined {
