@@ -25,7 +25,11 @@
       <div class="font-headline font-black uppercase text-2xl tracking-tighter text-primary">
         LAZYFORM
       </div>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <button id="back-profile-btn" class="hidden bg-primary-container text-primary border-2 border-primary px-3 py-1 font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:bg-primary-fixed">
+          <span class="material-symbols-outlined" style="font-size:14px;">arrow_back</span>
+          <span>BACK TO HOME</span>
+        </button>
         <button id="toggle-settings-btn" class="text-primary border-2 border-primary px-3 py-1 font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
           <span class="material-symbols-outlined btn-icon" style="font-size:16px;">settings</span>
           <span class="btn-label">Settings</span>
@@ -304,16 +308,12 @@
         <div class="p-6 relative shrink-0 border-b-4 border-primary">
           <div class="flex justify-between items-start">
             <div class="relative">
-              <h1 class="text-4xl font-black uppercase tracking-tighter leading-none font-display text-primary">
-                  USER<br>IDENTITY
+              <h1 class="text-5xl font-black uppercase tracking-tighter leading-none font-display text-primary">
+                  USER IDENTITY
               </h1>
               <div class="absolute -top-2 -right-3 w-6 h-6 bg-secondary border-4 border-primary rotate-12"></div>
             </div>
             <div class="flex flex-col gap-2 items-end">
-              <button id="back-profile-btn" class="bg-primary-container text-primary border-2 border-primary px-3 py-1 font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:bg-primary-fixed">
-                <span class="material-symbols-outlined" style="font-size:14px;">arrow_back</span>
-                <span>BACK TO HOME</span>
-              </button>
               <button id="edit-profile-btn" class="text-primary border-2 border-primary px-3 py-1 font-bold uppercase text-xs tracking-widest transition-colors flex items-center gap-1.5 shadow-[2px_2px_0px_0px_#1a1a1a] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none bg-background hover:bg-surface-variant w-full justify-center">
                 <span class="material-symbols-outlined" style="font-size:14px;" id="edit-profile-icon">edit</span>
                 <span id="edit-profile-text">EDIT</span>

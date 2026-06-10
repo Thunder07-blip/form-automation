@@ -851,6 +851,7 @@ if (backProfileBtn) {
         document.getElementById("view-solve").classList.remove("hidden-pane");
         document.getElementById("toggle-settings-btn").style.display = "";
         document.getElementById("open-profile-btn").style.display = "";
+        backProfileBtn.classList.add("hidden");
         if (isProfileEditMode) toggleProfileEditMode(); // reset edit mode
     });
 }
@@ -862,6 +863,7 @@ if (openProfileBtn) {
         viewProfilePane.classList.remove("hidden-pane");
         document.getElementById("toggle-settings-btn").style.display = "none";
         document.getElementById("open-profile-btn").style.display = "none";
+        if (backProfileBtn) backProfileBtn.classList.remove("hidden");
         
         chrome.storage.local.get(["formAI_user_id"], (res) => {
             if (res.formAI_user_id) {
