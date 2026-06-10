@@ -845,25 +845,20 @@ if (editProfileBtn) editProfileBtn.addEventListener("click", toggleProfileEditMo
 
 
 
-if (backProfileBtn) {
-    backProfileBtn.addEventListener("click", () => {
-        viewProfilePane.classList.add("hidden-pane");
-        document.getElementById("view-solve").classList.remove("hidden-pane");
-        document.getElementById("toggle-settings-btn").style.display = "";
-        document.getElementById("open-profile-btn").style.display = "";
-        backProfileBtn.classList.add("hidden");
-        if (isProfileEditMode) toggleProfileEditMode(); // reset edit mode
-    });
-}
+
 
 if (openProfileBtn) {
     openProfileBtn.addEventListener("click", () => {
         document.getElementById("view-solve").classList.add("hidden-pane");
         document.getElementById("view-settings").classList.add("hidden-pane");
         viewProfilePane.classList.remove("hidden-pane");
-        document.getElementById("toggle-settings-btn").style.display = "none";
+        const toggleBtn = document.getElementById("toggle-settings-btn");
+        toggleBtn.style.display = "";
+        toggleBtn.innerHTML = `
+          <span class="material-symbols-outlined btn-icon" style="font-size:16px;">home</span>
+          <span class="btn-label">Home</span>
+        `;
         document.getElementById("open-profile-btn").style.display = "none";
-        if (backProfileBtn) backProfileBtn.classList.remove("hidden");
         
         chrome.storage.local.get(["formAI_user_id"], (res) => {
             if (res.formAI_user_id) {
@@ -961,7 +956,7 @@ oldToggleSettingsListener.addEventListener("click", () => {
           <span class="btn-label">Settings</span>
         `;
         document.getElementById("open-profile-btn").style.display = "";
-        if (backProfileBtn) backProfileBtn.classList.add("hidden");
+
         if (typeof isProfileEditMode !== 'undefined' && isProfileEditMode) toggleProfileEditMode();
         return;
     }
