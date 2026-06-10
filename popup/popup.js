@@ -825,10 +825,12 @@ function toggleProfileEditMode() {
         document.getElementById("edit-profile-icon").textContent = "close";
         document.getElementById("edit-profile-text").textContent = "Cancel";
         dbSaveContainer.classList.remove("hidden");
+        document.getElementById("db-back-container").classList.add("hidden");
     } else {
         document.getElementById("edit-profile-icon").textContent = "edit";
         document.getElementById("edit-profile-text").textContent = "Edit";
         dbSaveContainer.classList.add("hidden");
+        document.getElementById("db-back-container").classList.remove("hidden");
         // Reload data to cancel changes
         if (currentDbUserId) loadDbProfile(currentDbUserId);
     }
