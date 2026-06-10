@@ -780,10 +780,9 @@ if (profileModeToggle) {
             const pairs = parseProfileTextToPairs(profileInputTextarea.value);
             renderProfileFormRows(pairs);
             
-            profileInputTextarea.classList.add("hidden");
-            profileFormContainer.classList.remove("hidden");
-            profileFormContainer.classList.add("flex");
-            addProfileRowBtn.classList.remove("hidden");
+            profileInputTextarea.style.display = "none";
+            profileFormContainer.style.display = "flex";
+            addProfileRowBtn.style.display = "flex";
         } else {
             // Switch to Textbox Mode
             profileModeThumb.classList.remove("translate-x-5");
@@ -792,10 +791,9 @@ if (profileModeToggle) {
             
             profileInputTextarea.value = serializePairsToText();
             
-            profileInputTextarea.classList.remove("hidden");
-            profileFormContainer.classList.add("hidden");
-            profileFormContainer.classList.remove("flex");
-            addProfileRowBtn.classList.add("hidden");
+            profileInputTextarea.style.display = "block";
+            profileFormContainer.style.display = "none";
+            addProfileRowBtn.style.display = "none";
         }
     });
 }
@@ -810,7 +808,7 @@ const viewProfilePane = document.getElementById("view-profile");
 const backProfileBtn = document.getElementById("back-profile-btn");
 const editProfileBtn = document.getElementById("edit-profile-btn");
 const saveProfileBtn = document.getElementById("save-profile-btn");
-const dbProfileLoading = document.getElementById("db-profile-loading");
+const dbProfileSkeleton = document.getElementById("db-profile-skeleton");\nconst dbProfileForm = document.getElementById("db-profile-form");
 const dbSaveContainer = document.getElementById("db-save-container");
 const dbError = document.getElementById("db-error");
 
@@ -868,7 +866,7 @@ if (openProfileBtn) {
 }
 
 async function loadDbProfile(userId) {
-    dbProfileLoading.classList.remove("hidden");
+    dbProfileSkeleton.classList.remove("hidden");\n    dbProfileForm.classList.add("hidden");
     dbError.classList.add("hidden");
     try {
         const res = await fetch(`https://form-automation-eight.vercel.app/api/user?id=${userId}`);
@@ -891,7 +889,7 @@ async function loadDbProfile(userId) {
         dbError.textContent = err.message;
         dbError.classList.remove("hidden");
     } finally {
-        dbProfileLoading.classList.add("hidden");
+        dbProfileSkeleton.classList.add("hidden");\n        dbProfileForm.classList.remove("hidden");
     }
 }
 
@@ -899,7 +897,7 @@ if (saveProfileBtn) {
     saveProfileBtn.addEventListener("click", async () => {
         if (!currentDbUserId) return;
         dbError.classList.add("hidden");
-        dbProfileLoading.classList.remove("hidden");
+        dbProfileSkeleton.classList.remove("hidden");\n        dbProfileForm.classList.add("hidden");
         
         const payload = {
             id: currentDbUserId,
@@ -929,7 +927,7 @@ if (saveProfileBtn) {
             dbError.textContent = err.message;
             dbError.classList.remove("hidden");
         } finally {
-            dbProfileLoading.classList.add("hidden");
+            dbProfileSkeleton.classList.add("hidden");\n            dbProfileForm.classList.remove("hidden");
         }
     });
 }
