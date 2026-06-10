@@ -5,7 +5,11 @@ function showOnboarding() {
     document.getElementById("view-solve").classList.add("hidden-pane");
     document.getElementById("view-settings").classList.add("hidden-pane");
     viewOnboard.classList.remove("hidden-pane");
-    document.getElementById("toggle-settings-btn").style.display = "";\n        document.getElementById("toggle-settings-btn").innerHTML = `\n          <span class="material-symbols-outlined btn-icon" style="font-size:16px;">home</span>\n          <span class="btn-label">Home</span>\n        `;
+    document.getElementById("toggle-settings-btn").style.display = "";
+        document.getElementById("toggle-settings-btn").innerHTML = `
+          <span class="material-symbols-outlined btn-icon" style="font-size:16px;">home</span>
+          <span class="btn-label">Home</span>
+        `;
     document.querySelector('[data-icon="account_circle"]').style.display = "none";
 }
 
