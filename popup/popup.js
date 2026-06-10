@@ -808,7 +808,8 @@ const viewProfilePane = document.getElementById("view-profile");
 const backProfileBtn = document.getElementById("back-profile-btn");
 const editProfileBtn = document.getElementById("edit-profile-btn");
 const saveProfileBtn = document.getElementById("save-profile-btn");
-const dbProfileSkeleton = document.getElementById("db-profile-skeleton");\nconst dbProfileForm = document.getElementById("db-profile-form");
+const dbProfileSkeleton = document.getElementById("db-profile-skeleton");
+const dbProfileForm = document.getElementById("db-profile-form");
 const dbSaveContainer = document.getElementById("db-save-container");
 const dbError = document.getElementById("db-error");
 
@@ -866,7 +867,8 @@ if (openProfileBtn) {
 }
 
 async function loadDbProfile(userId) {
-    dbProfileSkeleton.classList.remove("hidden");\n    dbProfileForm.classList.add("hidden");
+    dbProfileSkeleton.classList.remove("hidden");
+    dbProfileForm.classList.add("hidden");
     dbError.classList.add("hidden");
     try {
         const res = await fetch(`https://form-automation-eight.vercel.app/api/user?id=${userId}`);
@@ -889,7 +891,8 @@ async function loadDbProfile(userId) {
         dbError.textContent = err.message;
         dbError.classList.remove("hidden");
     } finally {
-        dbProfileSkeleton.classList.add("hidden");\n        dbProfileForm.classList.remove("hidden");
+        dbProfileSkeleton.classList.add("hidden");
+        dbProfileForm.classList.remove("hidden");
     }
 }
 
@@ -897,7 +900,8 @@ if (saveProfileBtn) {
     saveProfileBtn.addEventListener("click", async () => {
         if (!currentDbUserId) return;
         dbError.classList.add("hidden");
-        dbProfileSkeleton.classList.remove("hidden");\n        dbProfileForm.classList.add("hidden");
+        dbProfileSkeleton.classList.remove("hidden");
+        dbProfileForm.classList.add("hidden");
         
         const payload = {
             id: currentDbUserId,
@@ -927,7 +931,8 @@ if (saveProfileBtn) {
             dbError.textContent = err.message;
             dbError.classList.remove("hidden");
         } finally {
-            dbProfileSkeleton.classList.add("hidden");\n            dbProfileForm.classList.remove("hidden");
+            dbProfileSkeleton.classList.add("hidden");
+            dbProfileForm.classList.remove("hidden");
         }
     });
 }
